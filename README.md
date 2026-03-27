@@ -1,13 +1,13 @@
-# AURA - Emotion-Aware Browser Homepage
+# AwareTab - Emotion-Aware Browser Homepage
 
-AURA is an intelligent, emotion-aware browser extension that replaces your default new tab page with a dynamic, responsive environment. By analyzing your passive interaction signals (mouse movement, keyboard activity, tab switching, and scroll speed), AURA infers your current mood (Relaxed, Focused, Stressed, or Tired) and seamlessly adapts its UI, colors, and features to support your mental state.
+AwareTab is an intelligent, emotion-aware browser extension that replaces your default new tab page with a dynamic, responsive environment. By analyzing your passive interaction signals (mouse movement, keyboard activity, tab switching, and scroll speed), AwareTab infers your current mood (Relaxed, Focused, Stressed, or Tired) and seamlessly adapts its UI, colors, and features to support your mental state.
 
 ## 🌟 Key Features
 
 - **🧠 Emotion Engine:** A lightweight, browser-safe inference engine that tracks interaction signals continuously without compromising performance or privacy.
 - **🎨 Mood-Responsive Themes:** The entire interface, including background colors, text styling, and ambient elements, shifts gracefully based on your inferred mood.
 - **🎵 Ambient Soundscapes:** Features a built-in sound player that provides audio suited to your current state (e.g., calming sounds when stressed, focus beats when working).
-- **🧩 Smart Clutter Control:** Depending on your mood, AURA adjusts the level of UI clutter. For instance, it hides shortcuts and distractions when you need to focus, but keeps them accessible when you're relaxed.
+- **🧩 Smart Clutter Control:** Depending on your mood, AwareTab adjusts the level of UI clutter. For instance, it hides shortcuts and distractions when you need to focus, but keeps them accessible when you're relaxed.
 - **✨ Essential Widgets:** Includes a dynamic greeting, real-time clock, local weather, and quick shortcuts.
 
 ## 🛠️ Tech Stack
@@ -53,7 +53,7 @@ This will generate a `dist` folder containing the compiled assets and the `manif
 2. Enable **Developer mode** using the toggle in the top right corner.
 3. Click the **Load unpacked** button in the top left.
 4. Select the `dist` folder generated inside the `AwareTab` directory.
-5. Open a new tab, and you should now see AURA!
+5. Open a new tab, and you should now see AwareTab!
 
 ## 💻 Available Scripts
 

@@ -42,7 +42,7 @@ export default function ControlPanel({ currentMood, engine }) {
               className="fixed top-0 right-0 h-full w-80 bg-black/80 backdrop-blur-xl border-l border-white/10 z-50 p-6 text-white overflow-y-auto"
             >
               <div className="flex justify-between items-center mb-8">
-                <h2 className="text-xl font-semibold">AURA Control</h2>
+                <h2 className="text-xl font-semibold">AwareTab Control</h2>
                 <button onClick={() => setIsOpen(false)} className="opacity-70 hover:opacity-100 p-2">
                   <X className="w-6 h-6" />
                 </button>
@@ -70,7 +70,7 @@ export default function ControlPanel({ currentMood, engine }) {
                 
                 <div className="pt-6 border-t border-white/10">
                   <p className="text-sm opacity-80 leading-relaxed">
-                    AURA automatically detects your mood based on your browsing behavior using the Emotion Engine.
+                    AwareTab automatically detects your mood based on your browsing behavior using the Emotion Engine.
                   </p>
                   <div className="mt-6 p-4 rounded-xl bg-white/5 border border-white/10">
                     <p className="text-xs opacity-60 uppercase tracking-wider mb-1">Current State</p>

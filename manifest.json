@@ -1,6 +1,6 @@
 {
   "manifest_version": 3,
-  "name": "AURA",
+  "name": "AwareTab",
   "version": "1.0",
   "description": "Intelligent, emotion-aware browser homepage.",
   "chrome_url_overrides": {
@@ -13,6 +13,6 @@
     "geolocation"
   ],
   "action": {
-    "default_title": "AURA Settings"
+    "default_title": "AwareTab Settings"
   }
 }
