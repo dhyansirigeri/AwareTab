@@ -1,12 +1,12 @@
 export const MOODS = {
-  FRUSTRATED: 'FRUSTRATED',
+  STRESSED: 'STRESSED',
   FOCUSED: 'FOCUSED',
   TIRED: 'TIRED',
   RELAXED: 'RELAXED'
 };
 
 export const THEMES = {
-  [MOODS.FRUSTRATED]: {
+  [MOODS.STRESSED]: {
     colors: ['#FFF3E0', '#FF8F00'],
     textColor: 'text-amber-900',
     clutter: 'minimal',
