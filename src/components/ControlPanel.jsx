@@ -19,7 +19,7 @@ export default function ControlPanel({ currentMood, engine }) {
     <>
       <button 
         onClick={() => setIsOpen(true)}
-        className="p-3 rounded-full bg-black/10 hover:bg-black/30 backdrop-blur-md transition-colors border border-white/10"
+        className="p-3 rounded-full bg-theme-bg/30 hover:bg-theme-bg/50 backdrop-blur-md transition-colors border border-theme-border/30 text-theme-text"
       >
         <Settings className="w-5 h-5" />
       </button>
@@ -39,7 +39,7 @@ export default function ControlPanel({ currentMood, engine }) {
               animate={{ x: 0 }}
               exit={{ x: '100%' }}
               transition={{ type: 'spring', damping: 25, stiffness: 200 }}
-              className="fixed top-0 right-0 h-full w-80 bg-black/80 backdrop-blur-xl border-l border-white/10 z-50 p-6 text-white overflow-y-auto"
+              className="fixed top-0 right-0 h-full w-80 bg-theme-bg/90 backdrop-blur-xl border-l border-theme-border/30 z-50 p-6 text-theme-text overflow-y-auto"
             >
               <div className="flex justify-between items-center mb-8">
                 <h2 className="text-xl font-semibold">AwareTab Control</h2>
@@ -58,8 +58,8 @@ export default function ControlPanel({ currentMood, engine }) {
                         onClick={() => forceMood(m)}
                         className={`py-3 px-3 rounded-lg text-sm font-medium transition-colors shadow-sm ${
                           currentMood === m 
-                            ? 'bg-white text-black' 
-                            : 'bg-white/10 hover:bg-white/20 border border-white/5'
+                            ? 'bg-theme-text text-theme-bg' 
+                            : 'bg-theme-bg/40 hover:bg-theme-bg/60 border border-theme-border/20 text-theme-text'
                         }`}
                       >
                         {m}
@@ -72,7 +72,7 @@ export default function ControlPanel({ currentMood, engine }) {
                   <p className="text-sm opacity-80 leading-relaxed">
                     AwareTab automatically detects your mood based on your browsing behavior using the Emotion Engine.
                   </p>
-                  <div className="mt-6 p-4 rounded-xl bg-white/5 border border-white/10">
+                  <div className="mt-6 p-4 rounded-xl bg-theme-bg/40 border border-theme-border/20">
                     <p className="text-xs opacity-60 uppercase tracking-wider mb-1">Current State</p>
                     <p className="font-bold text-lg text-green-400">{currentMood}</p>
                   </div>

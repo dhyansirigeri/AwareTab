@@ -30,7 +30,7 @@ export default function Shortcuts({ clutterLevel }) {
 
   return (
     <div className="w-full">
-      <h3 className="text-sm font-medium opacity-60 uppercase tracking-wider mb-4 border-b border-white/20 pb-2">
+      <h3 className="text-sm font-medium opacity-60 uppercase tracking-wider mb-4 border-b border-theme-border/30 pb-2 text-theme-text">
         Top Sites
       </h3>
       <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
@@ -44,9 +44,9 @@ export default function Shortcuts({ clutterLevel }) {
             <a
               key={site.url}
               href={site.url}
-              className="group flex flex-col items-center justify-center p-4 bg-white/5 hover:bg-white/10 backdrop-blur-md rounded-xl border border-white/5 hover:border-white/20 transition-all shadow-sm"
+              className="group flex flex-col items-center justify-center p-4 bg-theme-bg/20 hover:bg-theme-bg/40 backdrop-blur-md rounded-xl border border-theme-border/20 hover:border-theme-border/40 transition-all shadow-sm text-theme-text"
             >
-              <div className="w-10 h-10 mb-2 rounded-full flex flex-shrink-0 overflow-hidden items-center justify-center bg-black/20 group-hover:bg-black/40 transition-colors">
+              <div className="w-10 h-10 mb-2 rounded-full flex flex-shrink-0 overflow-hidden items-center justify-center bg-theme-bg/30 group-hover:bg-theme-bg/50 transition-colors">
                 <img 
                   src={`https://www.google.com/s2/favicons?sz=64&domain=${hostname}`} 
                   alt="" 

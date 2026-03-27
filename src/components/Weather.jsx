@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { Cloud, Sun, CloudRain, Snowflake } from 'lucide-react';
 
-export default function Weather() {
+export default function Weather({ onWeatherUpdate }) {
   const [weather, setWeather] = useState({ temp: '--', condition: 'Loading' });
   const [icon, setIcon] = useState(<Cloud className="w-6 h-6" />);
 
@@ -11,11 +11,13 @@ export default function Weather() {
         const res = await fetch(`https://api.open-meteo.com/v1/forecast?latitude=${lat}&longitude=${lon}&current_weather=true`);
         const data = await res.json();
         if (data.current_weather) {
+          const conditionStr = getWeatherDesc(data.current_weather.weathercode);
           setWeather({
             temp: Math.round(data.current_weather.temperature),
-            condition: getWeatherDesc(data.current_weather.weathercode)
+            condition: conditionStr
           });
           setIcon(getWeatherIcon(data.current_weather.weathercode));
+          if (onWeatherUpdate) onWeatherUpdate(conditionStr);
         }
       } catch (err) {
         setWeather({ temp: '--', condition: 'Unavailable' });
@@ -47,7 +49,7 @@ export default function Weather() {
   };
 
   return (
-    <div className="flex items-center space-x-3 bg-black/10 backdrop-blur-md rounded-2xl p-3 px-4 shadow-sm border border-white/10">
+    <div className="flex items-center space-x-3 bg-theme-bg/30 backdrop-blur-md rounded-2xl p-3 px-4 shadow-sm border border-theme-border/30 text-theme-text">
       {icon}
       <div className="flex flex-col">
         <span className="text-lg font-bold leading-none">{weather.temp}°C</span>

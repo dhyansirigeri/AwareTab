@@ -1,0 +1,34 @@
+[
+  { 
+    "time": "night", "weather": "Rain", "file": "Rain Night.mp4",
+    "theme": { "text": "248 250 252", "bg": "15 23 42", "border": "148 163 184" }
+  },
+  { 
+    "time": "morning", "weather": "Clear", "file": "sunny weather.gif",
+    "theme": { "text": "254 243 199", "bg": "180 83 9", "border": "253 230 138" }
+  },
+  { 
+    "time": "afternoon", "weather": "Clear", "file": "sunny weather.gif",
+    "theme": { "text": "255 255 255", "bg": "217 119 6", "border": "251 191 36" }
+  },
+  { 
+    "time": "evening", "weather": "Clear", "file": "night.jpg",
+    "theme": { "text": "255 255 255", "bg": "30 58 138", "border": "147 197 253" }
+  },
+  { 
+    "time": "night", "weather": "Clear", "file": "night.jpg",
+    "theme": { "text": "255 255 255", "bg": "0 0 0", "border": "203 213 225" }
+  },
+  { 
+    "weather": "Rain", "file": "morning rain.mp4",
+    "theme": { "text": "255 255 255", "bg": "51 65 85", "border": "148 163 184" }
+  },
+  { 
+    "weather": "Cloudy", "file": "Windy weather.gif",
+    "theme": { "text": "255 255 255", "bg": "71 85 105", "border": "203 213 225" }
+  },
+  { 
+    "weather": "Snow", "file": "Windy weather.gif",
+    "theme": { "text": "255 255 255", "bg": "148 163 184", "border": "255 255 255" }
+  }
+]
