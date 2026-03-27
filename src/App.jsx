@@ -66,11 +66,9 @@ function App() {
       <div className="relative w-full h-full flex flex-col p-8 transition-colors duration-1000 text-theme-text">
         
         {/* Top Left Area */}
-        <div className="absolute top-10 left-10 flex flex-col items-start space-y-8 z-10 w-64">
+        <div className="absolute top-8 left-8 flex flex-col items-start z-10" style={{ gap: '1rem', maxWidth: '300px' }}>
           <Greeting phrase={theme.greeting} />
-          <div className="transform scale-90 origin-top-left">
-            <Weather onWeatherUpdate={setWeatherCondition} />
-          </div>
+          <Weather onWeatherUpdate={setWeatherCondition} />
         </div>
 
         {/* Top Right Area */}

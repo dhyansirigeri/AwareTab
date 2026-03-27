@@ -176,17 +176,21 @@ export default function Weather({ onWeatherUpdate }) {
 }
 
 const StyledWrapper = styled.div`
+  /* Wrapper: in-flow so App.jsx flexbox can position it */
   .cardm {
-    position: absolute;
+    position: relative;
+    width: 250px;
+    height: 130px;
     display: flex;
     align-items: center;
     justify-content: center;
-    top: 46.64%;
-    left: 50%;
+    z-index: 50;
   }
 
   .card {
     position: absolute;
+    top: 0;
+    left: 0;
     width: 250px;
     height: 130px;
     border-radius: 25px;
@@ -194,6 +198,7 @@ const StyledWrapper = styled.div`
     color: black;
     z-index: 2;
     transition: .4s ease-in-out;
+    overflow: hidden;
   }
 
   .weather {
@@ -217,14 +222,17 @@ const StyledWrapper = styled.div`
 
   .card2 {
     position: absolute;
+    top: 0;
+    left: 0;
     display: flex;
     flex-direction: row;
-    width: 240px;
+    width: 250px;
     height: 130px;
     border-radius: 35px;
     background: white;
-    z-index: -1;
+    z-index: 1;
     transition: .4s ease-in-out;
+    overflow: hidden;
   }
 
   .card:hover {
