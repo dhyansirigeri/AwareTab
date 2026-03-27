@@ -66,9 +66,11 @@ function App() {
       <div className="relative w-full h-full flex flex-col p-8 transition-colors duration-1000 text-theme-text">
         
         {/* Top Left Area */}
-        <div className="absolute top-8 left-8 flex flex-col items-start space-y-4 z-10">
+        <div className="absolute top-10 left-10 flex flex-col items-start space-y-8 z-10 w-64">
           <Greeting phrase={theme.greeting} />
-          <Weather onWeatherUpdate={setWeatherCondition} />
+          <div className="transform scale-90 origin-top-left">
+            <Weather onWeatherUpdate={setWeatherCondition} />
+          </div>
         </div>
 
         {/* Top Right Area */}
@@ -77,13 +79,13 @@ function App() {
         </div>
 
         {/* Center Content */}
-        <div className="flex flex-col flex-1 items-center justify-center z-10 mt-12">
-          <div className="scale-125 md:scale-150 mb-8 transform">
+        <div className="flex flex-col flex-1 items-center justify-center z-10 mt-6">
+          <div className="scale-110 md:scale-125 mb-6 transform">
              <Clock />
           </div>
           <SearchBar />
           
-          <div className={`transition-all duration-700 w-full max-w-4xl flex justify-center ${theme.clutter === 'none' ? 'opacity-0 pointer-events-none translate-y-4' : 'opacity-100 translate-y-0'}`}>
+          <div className={`transition-all duration-700 w-full max-w-4xl flex justify-center mt-10 ${theme.clutter === 'none' ? 'opacity-0 pointer-events-none translate-y-4' : 'opacity-100 translate-y-0'}`}>
             <Shortcuts clutterLevel={theme.clutter} />
           </div>
         </div>

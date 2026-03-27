@@ -1,0 +1,142 @@
+/* Weather.css */
+
+.cardm {
+  position: relative;
+  width: 250px;
+  height: 130px;
+  z-index: 50; /* Ensure the hover works and isn't blocked by hidden overlays */
+}
+
+.card {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  border-radius: 25px;
+  background: rgba(var(--theme-bg) / 0.8);
+  backdrop-filter: blur(16px);
+  border: 1px solid rgba(var(--theme-border) / 0.2);
+  color: rgb(var(--theme-text));
+  z-index: 2;
+  transition: .4s ease-in-out;
+}
+
+.weather {
+  position: relative;
+  margin: 1.5em;
+}
+
+.main {
+  font-size: 2em;
+  position: relative;
+  top: -2.8em;
+  left: 3.5em;
+  font-weight: bold;
+}
+
+.mainsub {
+  position: relative;
+  top: -8.5em;
+  left: 12em;
+  font-size: 0.7em;
+  opacity: 0.8;
+}
+
+.card2 {
+  position: absolute;
+  top: 0;
+  left: 0;
+  display: flex;
+  flex-direction: row;
+  width: 100%;
+  height: 100%;
+  border-radius: 35px;
+  background: rgba(var(--theme-bg) / 0.6);
+  backdrop-filter: blur(24px);
+  border: 1px solid rgba(var(--theme-border) / 0.2);
+  color: rgb(var(--theme-text));
+  z-index: 1; /* Keep it behind .card but above background */
+  transition: .4s ease-in-out;
+  overflow: hidden;
+}
+
+.cardm:hover .card {
+  background-color: rgba(var(--theme-bg) / 1);
+  cursor: pointer;
+}
+
+.cardm:hover .card2 {
+  height: 300px;
+  border-bottom-left-radius: 25px;
+  border-bottom-right-radius: 25px;
+}
+
+.cardm:hover .card2 .lower {
+  top: 9em;
+  opacity: 1;
+}
+
+.upper {
+  display: flex;
+  flex-direction: row;
+  position: relative;
+  left: 1.8em;
+  top: 0.5em;
+  gap: 4em;
+}
+
+.humiditytext {
+  position: relative;
+  left: 3.6em;
+  top: 2.7em;
+  font-size: 0.6em;
+}
+
+.airtext {
+  position: relative;
+  left: 3.8em;
+  top: 2.7em;
+  font-size: 0.6em;
+}
+
+.lower {
+  display: flex;
+  flex-direction: row;
+  position: absolute;
+  text-align: center;
+  left: 1.5em;
+  top: 1em;
+  margin-top: 0.7em;
+  font-size: 0.75em;
+  transition: .4s ease-in-out;
+  opacity: 0;
+  width: calc(100% - 3em);
+  justify-content: space-between;
+}
+
+.aqi {
+  margin-right: 3.25em;
+}
+
+.realfeel {
+  margin-right: 1.8em;
+}
+
+.card3 {
+  position: absolute;
+  display: flex;
+  flex-direction: row;
+  justify-content: center;
+  align-items: center;
+  width: 100%;
+  height: 40px;
+  bottom: 0px;
+  left: 0px;
+  top: auto;
+  font-size: 1.1em;
+  border-bottom-left-radius: 25px;
+  border-bottom-right-radius: 25px;
+  background: rgba(var(--theme-border) / 0.2);
+  transition: .4s ease-in-out;
+}
