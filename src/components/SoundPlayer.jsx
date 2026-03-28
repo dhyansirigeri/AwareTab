@@ -1,11 +1,12 @@
 import React, { useEffect, useState, useRef } from 'react';
 import { Volume2, VolumeX } from 'lucide-react';
 
+// Using reliable Google Action sounds instead of Pixabay to avoid 403 Forbidden hotlinking errors
 const SOUNDS = {
-  lofi: 'https://cdn.pixabay.com/download/audio/2022/05/27/audio_1808fbf07a.mp3', 
-  brownNoise: 'https://cdn.pixabay.com/download/audio/2022/03/10/audio_511d739b6e.mp3', 
-  ambient: 'https://cdn.pixabay.com/download/audio/2021/08/04/audio_169b50db11.mp3', 
-  lightMusic: 'https://cdn.pixabay.com/download/audio/2022/04/27/audio_496924b94d.mp3' 
+  lofi: 'https://actions.google.com/sounds/v1/ambiences/coffee_shop.ogg', 
+  brownNoise: 'https://actions.google.com/sounds/v1/weather/rain_heavy_loud.ogg', 
+  ambient: 'https://actions.google.com/sounds/v1/ambiences/outdoor_summer_ambience.ogg', 
+  lightMusic: 'https://actions.google.com/sounds/v1/water/waves_crashing_on_rock_beach.ogg' 
 };
 
 export default function SoundPlayer({ soundType, mood, enabled = true }) {

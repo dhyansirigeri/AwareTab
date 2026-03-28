@@ -14,6 +14,9 @@ import TopRightIcons from './components/TopRightIcons';
 import UserSettings from './components/UserSettings';
 import BookmarksPanel from './components/BookmarksPanel';
 import GoogleAppsPanel from './components/AppsGrid';
+import BreathingGuide from './components/BreathingGuide';
+import FocusTimer from './components/FocusTimer';
+import MoodIndicator from './components/MoodIndicator';
 
 import { storageGet, recordDomainVisit } from './utils/chromeApi';
 
@@ -31,7 +34,7 @@ function App() {
   const [settings, setSettings]             = useState(DEFAULT_SETTINGS);
   const [bookmarksOpen, setBookmarksOpen]   = useState(false);
   const [appsOpen, setAppsOpen]             = useState(false);
-  const engineRef = useRef(null);
+  const [engine, setEngine]                 = useState(null);
 
   // ─── Load settings ─────────────────────────────────────────────────────────
   useEffect(() => {
@@ -50,11 +53,13 @@ function App() {
   useEffect(() => {
     try {
       if (typeof EmotionEngine !== 'undefined') {
-        engineRef.current = new EmotionEngine({
+        const _engine = new EmotionEngine({
           debug: true,
           calibrationMs: 5000,
           manualOverrideMs: 8000,
         });
+        
+        setEngine(_engine);
 
         const handleMoodChange = (event) => {
           console.log('🎭 Mood change detected:', event.detail);
@@ -62,12 +67,12 @@ function App() {
         };
 
         window.addEventListener('moodChanged', handleMoodChange);
-        engineRef.current.start();
+        _engine.start();
         console.log('🚀 Emotion Engine started successfully');
 
         return () => {
           window.removeEventListener('moodChanged', handleMoodChange);
-          if (engineRef.current) engineRef.current.destroy();
+          _engine.destroy();
         };
       }
     } catch (e) {
@@ -88,6 +93,9 @@ function App() {
 
   // Clutter level: user setting overrides mood theme
   const clutterLevel = settings.clutterLevel || theme.clutter;
+  
+  // Safe helper to check component visibility
+  const showComponent = (name) => theme?.components?.show?.includes(name);
 
   const handleSettingsChange = (updated) => {
     setSettings((prev) => ({ ...prev, ...updated }));
@@ -101,6 +109,11 @@ function App() {
       mood={mood}
     >
       <div className="relative w-full h-full flex flex-col transition-colors duration-1000 text-theme-text" style={{ padding: '2rem' }}>
+        
+        {/* ── Top indicator ── */}
+        <div className="absolute top-8 left-1/2 transform -translate-x-1/2 z-20">
+           <MoodIndicator mood={mood} />
+        </div>
 
         {/* ── Left Column: Greeting → Weather → Usage Stats ── */}
         <div
@@ -121,35 +134,56 @@ function App() {
           <Greeting phrase={settings.userName ? `Welcome, ${settings.userName}.` : theme.greeting} />
 
           {/* Weather card */}
-          <Weather onWeatherUpdate={setWeatherCondition} />
+          {showComponent('weather') && (
+            <Weather onWeatherUpdate={setWeatherCondition} />
+          )}
 
           {/* Spacer */}
           <div style={{ flex: 1 }} />
 
           {/* Usage Stats card */}
-          <UsageStats />
+          {showComponent('usageStats') && (
+            <UsageStats />
+          )}
         </div>
 
         {/* ── Top Right ── */}
-        <div className="absolute top-8 right-8 z-10">
+        <div className="absolute top-8 right-8 z-10 flex gap-4">
           <TopRightIcons
             onBookmarksClick={() => setBookmarksOpen(true)}
             onAppsClick={() => setAppsOpen(true)}
+            hideBookmarks={!showComponent('bookmarks')}
+            hideApps={!showComponent('googleApps')}
           />
         </div>
 
-        {/* ── Center: Clock + Search + Shortcuts ── */}
+        {/* ── Center: Clock + Search + Shortcuts + Breathing/Focus ── */}
         <div className="flex flex-col flex-1 items-center justify-center z-10" style={{ marginTop: '-2rem' }}>
-          <div style={{ marginBottom: '2.5rem' }}>
-            <Clock clockFormat={settings.clockFormat} />
+          
+          <div style={{ marginBottom: showComponent('breathingGuide') || showComponent('focusTimer') ? '1.5rem' : '2.5rem' }}>
+            {showComponent('clock') && <Clock clockFormat={settings.clockFormat} />}
           </div>
 
-          <SearchBar
-            searchEngine={settings.searchEngine}
-            onEngineChange={(eng) => handleSettingsChange({ searchEngine: eng })}
-          />
+          {showComponent('searchBar') && (
+            <SearchBar
+              searchEngine={settings.searchEngine}
+              onEngineChange={(eng) => handleSettingsChange({ searchEngine: eng })}
+            />
+          )}
 
-          <div className={`transition-all duration-700 w-full max-w-4xl flex justify-center mt-4 ${clutterLevel === 'none' ? 'opacity-0 pointer-events-none translate-y-4' : 'opacity-100 translate-y-0'}`}>
+          {showComponent('breathingGuide') && (
+             <div className="mt-8 transition-opacity duration-700 opacity-100">
+               <BreathingGuide />
+             </div>
+          )}
+
+          {showComponent('focusTimer') && (
+             <div className="mt-8 transition-opacity duration-700 opacity-100">
+               <FocusTimer />
+             </div>
+          )}
+
+          <div className={`transition-all duration-700 w-full max-w-4xl flex justify-center mt-4 ${clutterLevel === 'none' || !showComponent('shortcuts') ? 'opacity-0 pointer-events-none translate-y-4 hidden' : 'opacity-100 translate-y-0'}`}>
             <Shortcuts clutterLevel={clutterLevel} />
           </div>
         </div>
@@ -166,27 +200,28 @@ function App() {
         <div className="absolute bottom-8 right-8 flex items-center z-10">
           <ControlPanel
             currentMood={mood}
-            engine={engineRef.current}
+            engine={engine}
           />
         </div>
 
         {/* ── Audio Player ── */}
-        <SoundPlayer
-          soundType={theme.soundType}
-          mood={mood}
-          enabled={settings.soundEnabled !== false}
-        />
+        {showComponent('music') && (
+          <SoundPlayer
+            soundType={theme.soundType}
+            mood={mood}
+            enabled={settings.soundEnabled !== false}
+          />
+        )}
 
       </div>
 
-
       {/* Panels (rendered outside normal flow, inside MoodBackground for z-index) */}
       <BookmarksPanel
-        isOpen={bookmarksOpen}
+        isOpen={bookmarksOpen && showComponent('bookmarks')}
         onClose={() => setBookmarksOpen(false)}
       />
       <GoogleAppsPanel
-        isOpen={appsOpen}
+        isOpen={appsOpen && showComponent('googleApps')}
         onClose={() => setAppsOpen(false)}
       />
 
