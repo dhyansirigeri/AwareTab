@@ -52,13 +52,13 @@ This will generate a `dist` folder containing the compiled assets and the `manif
 1. Open Chrome and navigate to `chrome://extensions/`.
 2. Enable **Developer mode** using the toggle in the top right corner.
 3. Click the **Load unpacked** button in the top left.
-4. Select the `dist` folder generated inside the `AwareTab` directory.
+4. Select the `dist` folder generated inside the `AwareTab` directory. *(Note: The `dist` folder is ignored by git, so you must run the build command above before you can load it into Chrome).*
 5. Open a new tab, and you should now see AwareTab!
 
-## 💻 Available Scripts
+## 💻 Development Workflow
 
-- `npm run dev` - Starts a local development server for testing the UI outside of the extension environment.
-- `npm run build` - Builds the extension for production into the `dist` folder.
+- `npm run dev` - Starts a local Vite development server for rapidly testing the UI components in a regular browser window, outside of the extension environment. 
+- `npm run build` - Compiles the React application into static files within the `dist/` directory. This is the directory you must load as an unpacked extension into Chrome. It also pulls in your `manifest.json`.
 - `npm run preview` - Previews the production build locally.
 
 ## 🤝 Contributing
