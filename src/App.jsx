@@ -100,15 +100,37 @@ function App() {
       weatherCondition={weatherCondition}
       mood={mood}
     >
-      <div className="relative w-full h-full flex flex-col p-8 transition-colors duration-1000 text-theme-text">
+      <div className="relative w-full h-full flex flex-col transition-colors duration-1000 text-theme-text" style={{ padding: '2rem' }}>
 
-        {/* Top Left Area */}
-        <div className="absolute top-8 left-8 flex flex-col items-start z-10" style={{ gap: '1rem', maxWidth: '300px' }}>
+        {/* ── Left Column: Greeting → Weather → Usage Stats ── */}
+        <div
+          style={{
+            position: 'absolute',
+            top: '2rem',
+            left: '2rem',
+            bottom: '2rem',
+            display: 'flex',
+            flexDirection: 'column',
+            alignItems: 'flex-start',
+            gap: '1.25rem',
+            zIndex: 10,
+            width: '240px',
+          }}
+        >
+          {/* Greeting */}
           <Greeting phrase={settings.userName ? `Welcome, ${settings.userName}.` : theme.greeting} />
+
+          {/* Weather card */}
           <Weather onWeatherUpdate={setWeatherCondition} />
+
+          {/* Spacer */}
+          <div style={{ flex: 1 }} />
+
+          {/* Usage Stats card */}
+          <UsageStats />
         </div>
 
-        {/* Top Right Area */}
+        {/* ── Top Right ── */}
         <div className="absolute top-8 right-8 z-10">
           <TopRightIcons
             onBookmarksClick={() => setBookmarksOpen(true)}
@@ -116,9 +138,9 @@ function App() {
           />
         </div>
 
-        {/* Center Content */}
-        <div className="flex flex-col flex-1 items-center justify-center z-10 mt-6">
-          <div className="scale-110 md:scale-125 mb-6 transform">
+        {/* ── Center: Clock + Search + Shortcuts ── */}
+        <div className="flex flex-col flex-1 items-center justify-center z-10" style={{ marginTop: '-2rem' }}>
+          <div style={{ marginBottom: '2.5rem' }}>
             <Clock clockFormat={settings.clockFormat} />
           </div>
 
@@ -132,12 +154,7 @@ function App() {
           </div>
         </div>
 
-        {/* Bottom Left Area */}
-        <div className="absolute bottom-8 left-8 z-10">
-          <UsageStats />
-        </div>
-
-        {/* Bottom Center Area */}
+        {/* ── Bottom Center ── */}
         <div className="absolute bottom-8 left-1/2 transform -translate-x-1/2 z-10">
           <UserSettings
             settings={settings}
@@ -145,7 +162,7 @@ function App() {
           />
         </div>
 
-        {/* Bottom Right Area */}
+        {/* ── Bottom Right ── */}
         <div className="absolute bottom-8 right-8 flex items-center z-10">
           <ControlPanel
             currentMood={mood}
@@ -153,7 +170,7 @@ function App() {
           />
         </div>
 
-        {/* Audio Player */}
+        {/* ── Audio Player ── */}
         <SoundPlayer
           soundType={theme.soundType}
           mood={mood}
@@ -161,6 +178,7 @@ function App() {
         />
 
       </div>
+
 
       {/* Panels (rendered outside normal flow, inside MoodBackground for z-index) */}
       <BookmarksPanel

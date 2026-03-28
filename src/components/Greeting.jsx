@@ -3,18 +3,26 @@ import { motion, AnimatePresence } from 'framer-motion';
 
 export default function Greeting({ phrase }) {
   return (
-    <div className="mt-4 text-2xl md:text-3xl font-light opacity-90 drop-shadow-md">
-      <AnimatePresence mode="wait">
-        <motion.p
-          key={phrase}
-          initial={{ opacity: 0, y: 10 }}
-          animate={{ opacity: 1, y: 0 }}
-          exit={{ opacity: 0, y: -10 }}
-          transition={{ duration: 0.8 }}
-        >
-          {phrase}
-        </motion.p>
-      </AnimatePresence>
-    </div>
+    <AnimatePresence mode="wait">
+      <motion.p
+        key={phrase}
+        initial={{ opacity: 0, y: 8 }}
+        animate={{ opacity: 1, y: 0 }}
+        exit={{ opacity: 0, y: -8 }}
+        transition={{ duration: 0.7, ease: 'easeOut' }}
+        style={{
+          fontFamily: "'Sora', 'Inter', sans-serif",
+          fontSize: 'clamp(1rem, 2vw, 1.35rem)',
+          fontWeight: 300,
+          lineHeight: 1.45,
+          color: 'rgba(255,255,255,0.82)',
+          letterSpacing: '0.01em',
+          textShadow: '0 1px 12px rgba(0,0,0,0.5)',
+          margin: 0,
+        }}
+      >
+        {phrase}
+      </motion.p>
+    </AnimatePresence>
   );
 }

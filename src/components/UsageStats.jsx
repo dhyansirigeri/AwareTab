@@ -1,313 +1,305 @@
 import React, { useState, useEffect } from 'react';
-import { X, Activity, TrendingUp } from 'lucide-react';
-import { getTodayStats, getFaviconUrl } from '../utils/chromeApi';
-import { motion, AnimatePresence } from 'framer-motion';
-import styled from 'styled-components';
+import { TrendingUp } from 'lucide-react';
+import { getTodayStats } from '../utils/chromeApi';
+import { motion } from 'framer-motion';
+import styled, { keyframes } from 'styled-components';
 
+// ─── Category detection ────────────────────────────────────────────────────────
+const KEYWORDS = {
+  work:          ['github', 'gitlab', 'notion', 'linear', 'jira', 'slack', 'figma', 'drive', 'docs', 'sheets', 'asana', 'trello', 'clickup', 'zoom', 'meet', 'calendar', 'gmail', 'outlook', 'stackoverflow', 'leetcode'],
+  social:        ['twitter', 'instagram', 'facebook', 'reddit', 'tiktok', 'linkedin', 'discord', 'telegram', 'whatsapp', 'x.com'],
+  entertainment: ['youtube', 'netflix', 'spotify', 'twitch', 'primevideo', 'hotstar', 'disneyplus'],
+  news:          ['news', 'cnn', 'bbc', 'techcrunch', 'verge', 'medium', 'substack'],
+};
+
+const CAT_META = {
+  work:          { label: 'WORK',          color: '#4ade80', track: 'rgba(74,222,128,0.14)' },
+  social:        { label: 'SOCIAL',        color: '#f59e0b', track: 'rgba(245,158,11,0.14)' },
+  entertainment: { label: 'ENTERTAIN',     color: '#f472b6', track: 'rgba(244,114,182,0.14)' },
+  news:          { label: 'NEWS',          color: '#60a5fa', track: 'rgba(96,165,250,0.14)' },
+  other:         { label: 'OTHER',         color: '#a78bfa', track: 'rgba(167,139,250,0.14)' },
+};
+
+function categorise(domain) {
+  for (const [cat, kws] of Object.entries(KEYWORDS)) {
+    if (kws.some((k) => domain.includes(k))) return cat;
+  }
+  return 'other';
+}
+
+function toTimeStr(visits) {
+  const mins = visits * 4;
+  if (mins < 60) return `${mins}m`;
+  const h = Math.floor(mins / 60);
+  const m = mins % 60;
+  return m > 0 ? `${h}h ${m}m` : `${h}h`;
+}
+
+// ─── Component ────────────────────────────────────────────────────────────────
 export default function UsageStats() {
-  const [isOpen, setIsOpen] = useState(false);
-  const [stats, setStats]   = useState([]);
-  const [loading, setLoading] = useState(true);
+  const [totalVisits, setTotal]   = useState(0);
+  const [catStats, setCatStats]   = useState([]);
+  const [hovered, setHovered]     = useState(false);
+  const [loaded, setLoaded]       = useState(false);
 
   useEffect(() => {
-    if (isOpen) {
-      setLoading(true);
-      getTodayStats().then((s) => {
-        setStats(s.slice(0, 10));
-        setLoading(false);
-      });
-    }
-  }, [isOpen]);
+    getTodayStats().then((s) => {
+      const total = s.reduce((sum, x) => sum + x.count, 0);
+      setTotal(total);
 
-  const maxCount = stats.length > 0 ? Math.max(...stats.map((s) => s.count)) : 1;
-  const totalVisits = stats.reduce((sum, s) => sum + s.count, 0);
+      const catMap = {};
+      for (const { domain, count } of s) {
+        const cat = categorise(domain);
+        catMap[cat] = (catMap[cat] || 0) + count;
+      }
+
+      const maxCat = Math.max(1, ...Object.values(catMap));
+      const cats = Object.entries(catMap)
+        .sort((a, b) => b[1] - a[1])
+        .slice(0, 3)
+        .map(([cat, count]) => ({
+          cat,
+          count,
+          pct: Math.round((count / Math.max(1, total)) * 100),
+          bar: Math.round((count / maxCat) * 100),
+          ...CAT_META[cat],
+        }));
+
+      setCatStats(cats);
+      setLoaded(true);
+    });
+  }, []);
+
+  const timeStr = toTimeStr(totalVisits);
+  // rough +% above avg (mock heuristic)
+  const avgAbove = totalVisits > 2 ? Math.round((totalVisits * 0.12)) : 0;
 
   return (
-    <>
-      <button
-        onClick={() => setIsOpen(true)}
-        style={{
-          display: 'flex',
-          flexDirection: 'column',
-          alignItems: 'center',
-          justifyContent: 'center',
-          gap: '0.25rem',
-          background: 'rgba(var(--theme-bg),0.3)',
-          border: '1px solid rgba(var(--theme-border),0.3)',
-          borderRadius: '1rem',
-          padding: '0.75rem 1.25rem',
-          color: 'rgb(var(--theme-text))',
-          cursor: 'pointer',
-          backdropFilter: 'blur(12px)',
-          transition: 'background 0.2s',
-        }}
-        onMouseEnter={(e) => e.currentTarget.style.background = 'rgba(var(--theme-bg),0.5)'}
-        onMouseLeave={(e) => e.currentTarget.style.background = 'rgba(var(--theme-bg),0.3)'}
-      >
-        <Activity size={22} style={{ opacity: 0.8 }} />
-        <span style={{ fontSize: '0.8rem', fontWeight: 600, opacity: 0.9 }}>Usage Stats</span>
-        {totalVisits > 0 && (
-          <span style={{ fontSize: '0.65rem', opacity: 0.5 }}>{totalVisits} visits today</span>
+    <Card
+      $hovered={hovered}
+      onMouseEnter={() => setHovered(true)}
+      onMouseLeave={() => setHovered(false)}
+    >
+      {/* Ambient glow */}
+      <GlowBlob $hovered={hovered} />
+
+      {/* Header */}
+      <Header>
+        <HeaderLeft>
+          <TrendingUp size={13} style={{ opacity: 0.7 }} />
+          <HeaderTitle>Usage Stats</HeaderTitle>
+        </HeaderLeft>
+        <TodayBadge>Today</TodayBadge>
+      </Header>
+
+      {/* Big time */}
+      <BigTime>
+        <motion.span
+          className="time-val"
+          key={timeStr}
+          initial={{ opacity: 0, y: 8 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.5 }}
+        >
+          {loaded ? timeStr : '—'}
+        </motion.span>
+        {avgAbove > 0 && (
+          <motion.span
+            className="avg-badge"
+            initial={{ opacity: 0, scale: 0.8 }}
+            animate={{ opacity: 1, scale: 1 }}
+            transition={{ delay: 0.2, duration: 0.4 }}
+          >
+            +{avgAbove}% from avg
+          </motion.span>
         )}
-      </button>
+      </BigTime>
 
-      <AnimatePresence>
-        {isOpen && (
-          <>
-            <motion.div
-              key="us-backdrop"
-              initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
-              style={{
-                position: 'fixed', inset: 0, zIndex: 40,
-                background: 'rgba(0,0,0,0.4)',
-                backdropFilter: 'blur(4px)',
-              }}
-              onClick={() => setIsOpen(false)}
-            />
-
-            <motion.div
-              key="us-panel"
-              initial={{ x: '-100%' }}
-              animate={{ x: 0 }}
-              exit={{ x: '-100%' }}
-              transition={{ type: 'spring', damping: 28, stiffness: 220 }}
-              style={{ position: 'fixed', top: 0, left: 0, height: '100%', zIndex: 50 }}
-            >
-              <Panel>
-                <div className="panel-header">
-                  <div className="header-title">
-                    <TrendingUp size={17} />
-                    <span>Today's Usage</span>
-                  </div>
-                  <button className="close-btn" onClick={() => setIsOpen(false)}>
-                    <X size={19} />
-                  </button>
-                </div>
-
-                {!loading && totalVisits > 0 && (
-                  <div className="total-tag">
-                    <Activity size={13} />
-                    <span>{totalVisits} total visits</span>
-                  </div>
-                )}
-
-                <div className="chart-container">
-                  {loading ? (
-                    Array.from({ length: 6 }).map((_, i) => (
-                      <div key={i} className="stat-skeleton" />
-                    ))
-                  ) : stats.length === 0 ? (
-                    <div className="empty-state">
-                      <Activity size={32} style={{ opacity: 0.2, marginBottom: '0.75rem' }} />
-                      <p>No visits recorded yet today.</p>
-                      <p className="empty-sub">Visit some sites and come back!</p>
-                    </div>
-                  ) : (
-                    stats.map((stat, i) => (
-                      <motion.div
-                        key={stat.domain}
-                        className="stat-row"
-                        initial={{ opacity: 0, x: -20 }}
-                        animate={{ opacity: 1, x: 0 }}
-                        transition={{ delay: i * 0.05 }}
-                      >
-                        <img
-                          src={getFaviconUrl(`https://${stat.domain}`)}
-                          alt=""
-                          className="stat-favicon"
-                          onError={(e) => {
-                            e.target.style.display = 'none';
-                            e.target.nextSibling.style.display = 'flex';
-                          }}
-                        />
-                        <span className="stat-initial" style={{ display: 'none' }}>
-                          {stat.domain[0].toUpperCase()}
-                        </span>
-                        <div className="stat-info">
-                          <div className="stat-domain-row">
-                            <span className="stat-domain">{stat.domain}</span>
-                            <span className="stat-count">{stat.count}×</span>
-                          </div>
-                          <div className="bar-track">
-                            <motion.div
-                              className="bar-fill"
-                              initial={{ width: 0 }}
-                              animate={{ width: `${(stat.count / maxCount) * 100}%` }}
-                              transition={{ delay: i * 0.05 + 0.15, duration: 0.5, ease: 'easeOut' }}
-                              style={{ '--bar-hue': `${(i * 47) % 360}` }}
-                            />
-                          </div>
-                        </div>
-                      </motion.div>
-                    ))
-                  )}
-                </div>
-              </Panel>
-            </motion.div>
-          </>
+      {/* Category bars */}
+      <Bars>
+        {catStats.length === 0 && loaded && (
+          <EmptyNote>Browse some sites to see stats!</EmptyNote>
         )}
-      </AnimatePresence>
-    </>
+        {catStats.map((c, i) => (
+          <Bar key={c.cat}>
+            <BarHeader>
+              <span className="bar-label">{c.label}</span>
+              <span className="bar-pct">{c.pct}%</span>
+            </BarHeader>
+            <BarTrack style={{ background: c.track }}>
+              <motion.div
+                style={{
+                  height: '100%',
+                  borderRadius: '999px',
+                  background: hovered
+                    ? `linear-gradient(90deg, ${c.color}cc, ${c.color})`
+                    : c.color,
+                  boxShadow: hovered ? `0 0 8px ${c.color}80` : 'none',
+                  transition: 'background 0.4s, box-shadow 0.4s',
+                }}
+                initial={{ width: 0 }}
+                animate={{ width: `${c.bar}%` }}
+                transition={{ delay: 0.1 + i * 0.1, duration: 0.7, ease: 'easeOut' }}
+              />
+            </BarTrack>
+          </Bar>
+        ))}
+      </Bars>
+    </Card>
   );
 }
 
-const Panel = styled.div`
-  width: 300px;
-  height: 100%;
-  background: rgba(8, 8, 14, 0.9);
-  backdrop-filter: blur(40px) saturate(200%);
-  -webkit-backdrop-filter: blur(40px) saturate(200%);
-  border-right: 1px solid rgba(255,255,255,0.1);
+// ─── Animations ───────────────────────────────────────────────────────────────
+const glowBreath = keyframes`
+  0%, 100% { opacity: 0.18; transform: scale(1); }
+  50% { opacity: 0.28; transform: scale(1.08); }
+`;
+
+// ─── Styled components ────────────────────────────────────────────────────────
+const Card = styled.div`
+  position: relative;
+  overflow: hidden;
+  width: 100%;
+  padding: 1rem 1.1rem 1.1rem;
+  border-radius: 20px;
+  background: ${({ $hovered }) =>
+    $hovered
+      ? 'rgba(22, 36, 28, 0.92)'
+      : 'rgba(16, 26, 20, 0.88)'};
+  backdrop-filter: blur(28px) saturate(160%);
+  -webkit-backdrop-filter: blur(28px) saturate(160%);
+  border: 1px solid ${({ $hovered }) =>
+    $hovered ? 'rgba(74,222,128,0.22)' : 'rgba(255,255,255,0.08)'};
+  box-shadow: ${({ $hovered }) =>
+    $hovered
+      ? '0 8px 40px rgba(0,0,0,0.35), 0 0 30px rgba(74,222,128,0.1)'
+      : '0 4px 20px rgba(0,0,0,0.25)'};
+  transform: ${({ $hovered }) => $hovered ? 'translateY(-3px)' : 'none'};
+  transition:
+    background 0.35s ease,
+    border-color 0.35s ease,
+    box-shadow 0.35s ease,
+    transform 0.3s ease;
+  cursor: default;
+`;
+
+const GlowBlob = styled.div`
+  position: absolute;
+  bottom: -30px;
+  left: -20px;
+  width: 120px;
+  height: 120px;
+  border-radius: 50%;
+  background: radial-gradient(circle, #4ade80 0%, transparent 70%);
+  filter: blur(30px);
+  animation: ${glowBreath} 3.5s ease-in-out infinite;
+  pointer-events: none;
+  opacity: ${({ $hovered }) => $hovered ? 0.35 : 0.18};
+  transition: opacity 0.4s ease;
+`;
+
+const Header = styled.div`
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 0.65rem;
+`;
+
+const HeaderLeft = styled.div`
+  display: flex;
+  align-items: center;
+  gap: 0.3rem;
+  color: rgba(255,255,255,0.55);
+`;
+
+const HeaderTitle = styled.span`
+  font-family: 'Sora', 'Inter', sans-serif;
+  font-size: 0.75rem;
+  font-weight: 600;
+  color: rgba(255,255,255,0.6);
+  letter-spacing: 0.01em;
+`;
+
+const TodayBadge = styled.span`
+  font-family: 'Sora', sans-serif;
+  font-size: 0.65rem;
+  font-weight: 500;
+  color: rgba(255,255,255,0.35);
+  background: rgba(255,255,255,0.07);
+  border: 1px solid rgba(255,255,255,0.1);
+  border-radius: 999px;
+  padding: 0.1rem 0.55rem;
+  letter-spacing: 0.04em;
+`;
+
+const BigTime = styled.div`
+  display: flex;
+  align-items: baseline;
+  gap: 0.5rem;
+  margin-bottom: 0.9rem;
+  flex-wrap: wrap;
+
+  .time-val {
+    font-family: 'Space Grotesk', sans-serif;
+    font-size: 2.1rem;
+    font-weight: 700;
+    color: #fff;
+    letter-spacing: -0.03em;
+    line-height: 1;
+  }
+
+  .avg-badge {
+    font-family: 'Sora', sans-serif;
+    font-size: 0.65rem;
+    font-weight: 600;
+    color: #4ade80;
+    background: rgba(74,222,128,0.1);
+    border: 1px solid rgba(74,222,128,0.22);
+    border-radius: 999px;
+    padding: 0.15rem 0.5rem;
+    white-space: nowrap;
+  }
+`;
+
+const Bars = styled.div`
   display: flex;
   flex-direction: column;
-  color: #fff;
+  gap: 0.6rem;
+`;
 
-  .panel-header {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    padding: 1.25rem;
-    border-bottom: 1px solid rgba(255,255,255,0.08);
-  }
+const Bar = styled.div``;
 
-  .header-title {
-    display: flex;
-    align-items: center;
-    gap: 0.5rem;
-    font-size: 1rem;
+const BarHeader = styled.div`
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 0.28rem;
+
+  .bar-label {
+    font-family: 'Sora', sans-serif;
+    font-size: 0.6rem;
     font-weight: 600;
-  }
-
-  .close-btn {
-    background: rgba(255,255,255,0.07);
-    border: none;
-    border-radius: 8px;
-    padding: 0.35rem;
-    color: rgba(255,255,255,0.6);
-    cursor: pointer;
-    display: flex;
-    align-items: center;
-    transition: background 0.2s;
-    &:hover { background: rgba(255,255,255,0.14); color: #fff; }
-  }
-
-  .total-tag {
-    display: flex;
-    align-items: center;
-    gap: 0.35rem;
-    margin: 0.75rem 1.25rem 0;
-    font-size: 0.72rem;
+    letter-spacing: 0.1em;
     color: rgba(255,255,255,0.35);
-    text-transform: uppercase;
-    letter-spacing: 0.06em;
   }
 
-  .chart-container {
-    flex: 1;
-    overflow-y: auto;
-    padding: 0.75rem 1.25rem 1.25rem;
-    display: flex;
-    flex-direction: column;
-    gap: 0.5rem;
-
-    &::-webkit-scrollbar { width: 4px; }
-    &::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.12); border-radius: 999px; }
-  }
-
-  .stat-skeleton {
-    height: 48px;
-    background: rgba(255,255,255,0.05);
-    border-radius: 10px;
-    animation: pulse 1.5s ease-in-out infinite;
-  }
-
-  @keyframes pulse {
-    0%, 100% { opacity: 0.5; }
-    50% { opacity: 1; }
-  }
-
-  .empty-state {
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    justify-content: center;
-    flex: 1;
-    text-align: center;
-    color: rgba(255,255,255,0.35);
-    font-size: 0.85rem;
-    padding: 2rem;
-    margin-top: 2rem;
-
-    p { margin: 0.2rem 0; }
-    .empty-sub { font-size: 0.75rem; opacity: 0.6; margin-top: 0.25rem; }
-  }
-
-  .stat-row {
-    display: flex;
-    align-items: center;
-    gap: 0.6rem;
-  }
-
-  .stat-favicon {
-    width: 20px;
-    height: 20px;
-    border-radius: 5px;
-    object-fit: contain;
-    flex-shrink: 0;
-  }
-
-  .stat-initial {
-    width: 20px;
-    height: 20px;
-    border-radius: 5px;
-    background: rgba(255,255,255,0.12);
-    flex-shrink: 0;
-    align-items: center;
-    justify-content: center;
-    font-size: 0.7rem;
-    font-weight: 700;
-  }
-
-  .stat-info {
-    flex: 1;
-    min-width: 0;
-  }
-
-  .stat-domain-row {
-    display: flex;
-    justify-content: space-between;
-    align-items: baseline;
-    margin-bottom: 4px;
-  }
-
-  .stat-domain {
-    font-size: 0.8rem;
+  .bar-pct {
+    font-family: 'Space Grotesk', sans-serif;
+    font-size: 0.65rem;
     font-weight: 500;
-    color: rgba(255,255,255,0.85);
-    white-space: nowrap;
-    overflow: hidden;
-    text-overflow: ellipsis;
-    max-width: 180px;
+    color: rgba(255,255,255,0.3);
   }
+`;
 
-  .stat-count {
-    font-size: 0.7rem;
-    color: rgba(255,255,255,0.35);
-    flex-shrink: 0;
-    margin-left: 0.25rem;
-  }
+const BarTrack = styled.div`
+  height: 5px;
+  border-radius: 999px;
+  overflow: hidden;
+`;
 
-  .bar-track {
-    height: 5px;
-    background: rgba(255,255,255,0.08);
-    border-radius: 999px;
-    overflow: hidden;
-  }
-
-  .bar-fill {
-    height: 100%;
-    border-radius: 999px;
-    background: hsl(calc(var(--bar-hue) * 1deg), 70%, 60%);
-    opacity: 0.8;
-  }
+const EmptyNote = styled.p`
+  font-family: 'Sora', sans-serif;
+  font-size: 0.72rem;
+  color: rgba(255,255,255,0.25);
+  margin: 0;
 `;

@@ -156,38 +156,22 @@ export default function Shortcuts({ clutterLevel }) {
             </div>
           </motion.div>
         )}
+        {/* Edit toggle — inline with Add */}
+        {!adding && (
+          <div className="sc-wrapper">
+            <button
+              onClick={() => setEditMode((v) => !v)}
+              className={`sc-tile sc-edit ${editMode ? 'sc-edit-active' : ''}`}
+              title={editMode ? 'Done editing' : 'Edit shortcuts'}
+            >
+              <div className={`sc-icon-ring sc-edit-ring ${editMode ? 'sc-edit-ring-active' : ''}`}>
+                {editMode ? <Check size={18} strokeWidth={2.5} /> : <Pencil size={16} strokeWidth={2} />}
+              </div>
+              <span className="sc-label">{editMode ? 'Done' : 'Edit'}</span>
+            </button>
+          </div>
+        )}
       </ShortcutRow>
-
-      {/* Edit toggle */}
-      {!adding && (
-        <button
-          onClick={() => setEditMode((v) => !v)}
-          style={{
-            display: 'inline-flex',
-            alignItems: 'center',
-            gap: '0.3rem',
-            background: editMode ? 'rgba(255,80,80,0.15)' : 'rgba(255,255,255,0.08)',
-            border: editMode ? '1px solid rgba(255,80,80,0.35)' : '1px solid rgba(255,255,255,0.12)',
-            borderRadius: '999px',
-            color: editMode ? 'rgba(255,160,160,0.9)' : 'rgba(255,255,255,0.4)',
-            fontSize: '0.68rem',
-            fontWeight: 600,
-            padding: '0.22rem 0.85rem',
-            cursor: 'pointer',
-            letterSpacing: '0.05em',
-            textTransform: 'uppercase',
-            fontFamily: 'inherit',
-            transition: 'all 0.2s',
-            marginTop: '0.1rem',
-          }}
-        >
-          {editMode ? (
-            <><Check size={11} /> Done</>
-          ) : (
-            <><Pencil size={11} /> Edit</>
-          )}
-        </button>
-      )}
     </Wrapper>
   );
 }
@@ -326,6 +310,33 @@ const ShortcutRow = styled.div`
 
   .sc-add .sc-label {
     color: rgba(255, 255, 255, 0.4);
+  }
+
+  /* ── Edit tile ── */
+  .sc-edit-ring {
+    background: rgba(255, 255, 255, 0.07);
+    border: 1px solid rgba(255, 255, 255, 0.18);
+    color: rgba(255, 255, 255, 0.4);
+
+    .sc-edit:hover & {
+      background: rgba(255, 255, 255, 0.13);
+      border-color: rgba(255, 255, 255, 0.35);
+      color: rgba(255, 255, 255, 0.75);
+    }
+  }
+
+  .sc-edit-ring-active {
+    background: rgba(74, 222, 128, 0.12);
+    border-color: rgba(74, 222, 128, 0.4);
+    color: #4ade80;
+  }
+
+  .sc-edit .sc-label {
+    color: rgba(255, 255, 255, 0.4);
+  }
+
+  .sc-edit-active .sc-label {
+    color: #4ade80;
   }
 
   /* ── Remove badge ── */
