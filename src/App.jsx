@@ -8,25 +8,52 @@ import Weather from './components/Weather';
 import Shortcuts from './components/Shortcuts';
 import ControlPanel from './components/ControlPanel';
 import SoundPlayer from './components/SoundPlayer';
-
 import SearchBar from './components/SearchBar';
 import UsageStats from './components/UsageStats';
 import TopRightIcons from './components/TopRightIcons';
 import UserSettings from './components/UserSettings';
+import BookmarksPanel from './components/BookmarksPanel';
+import AppsGrid from './components/AppsGrid';
+
+import { storageGet, recordDomainVisit } from './utils/chromeApi';
+
+const DEFAULT_SETTINGS = {
+  userName: '',
+  searchEngine: 'google',
+  clockFormat: '12h',
+  soundEnabled: true,
+  clutterLevel: 'minimal',
+};
 
 function App() {
-  const [mood, setMood] = useState(MOODS.RELAXED);
+  const [mood, setMood]                     = useState(MOODS.RELAXED);
   const [weatherCondition, setWeatherCondition] = useState('Loading');
+  const [settings, setSettings]             = useState(DEFAULT_SETTINGS);
+  const [bookmarksOpen, setBookmarksOpen]   = useState(false);
+  const [appsOpen, setAppsOpen]             = useState(false);
   const engineRef = useRef(null);
 
+  // ─── Load settings ─────────────────────────────────────────────────────────
+  useEffect(() => {
+    storageGet(Object.keys(DEFAULT_SETTINGS)).then((saved) => {
+      setSettings({ ...DEFAULT_SETTINGS, ...saved });
+    });
+  }, []);
+
+  // ─── Track this page visit ──────────────────────────────────────────────────
+  useEffect(() => {
+    // Record a visit for 'newtab' domain each time the tab opens
+    recordDomainVisit('https://newtab.local/');
+  }, []);
+
+  // ─── Emotion Engine ─────────────────────────────────────────────────────────
   useEffect(() => {
     try {
       if (typeof EmotionEngine !== 'undefined') {
-        // Initialize with debug mode enabled and faster calibration
         engineRef.current = new EmotionEngine({
           debug: true,
-          calibrationMs: 5000,  // 5 seconds instead of 12
-          manualOverrideMs: 8000   // 8 seconds for manual overrides
+          calibrationMs: 5000,
+          manualOverrideMs: 8000,
         });
 
         const handleMoodChange = (event) => {
@@ -40,15 +67,11 @@ function App() {
 
         return () => {
           window.removeEventListener('moodChanged', handleMoodChange);
-          if (engineRef.current) {
-            engineRef.current.destroy();
-          }
+          if (engineRef.current) engineRef.current.destroy();
         };
-      } else {
-        console.error("EmotionEngine is not defined.");
       }
     } catch (e) {
-      console.error("Error initializing EmotionEngine", e);
+      console.error('Error initializing EmotionEngine', e);
     }
   }, []);
 
@@ -63,35 +86,49 @@ function App() {
   const theme = THEMES[mood] || THEMES[MOODS.RELAXED];
   const timeOfDay = getAppTimeOfDay();
 
+  // Clutter level: user setting overrides mood theme
+  const clutterLevel = settings.clutterLevel || theme.clutter;
+
+  const handleSettingsChange = (updated) => {
+    setSettings((prev) => ({ ...prev, ...updated }));
+  };
+
   return (
-    <MoodBackground 
-      colors={theme.colors} 
-      timeOfDay={timeOfDay} 
-      weatherCondition={weatherCondition} 
+    <MoodBackground
+      colors={theme.colors}
+      timeOfDay={timeOfDay}
+      weatherCondition={weatherCondition}
       mood={mood}
     >
       <div className="relative w-full h-full flex flex-col p-8 transition-colors duration-1000 text-theme-text">
-        
+
         {/* Top Left Area */}
         <div className="absolute top-8 left-8 flex flex-col items-start z-10" style={{ gap: '1rem', maxWidth: '300px' }}>
-          <Greeting phrase={theme.greeting} />
+          <Greeting phrase={settings.userName ? `Welcome, ${settings.userName}.` : theme.greeting} />
           <Weather onWeatherUpdate={setWeatherCondition} />
         </div>
 
         {/* Top Right Area */}
         <div className="absolute top-8 right-8 z-10">
-          <TopRightIcons />
+          <TopRightIcons
+            onBookmarksClick={() => setBookmarksOpen(true)}
+            onAppsClick={() => setAppsOpen(true)}
+          />
         </div>
 
         {/* Center Content */}
         <div className="flex flex-col flex-1 items-center justify-center z-10 mt-6">
           <div className="scale-110 md:scale-125 mb-6 transform">
-             <Clock />
+            <Clock clockFormat={settings.clockFormat} />
           </div>
-          <SearchBar />
-          
-          <div className={`transition-all duration-700 w-full max-w-4xl flex justify-center mt-10 ${theme.clutter === 'none' ? 'opacity-0 pointer-events-none translate-y-4' : 'opacity-100 translate-y-0'}`}>
-            <Shortcuts clutterLevel={theme.clutter} />
+
+          <SearchBar
+            searchEngine={settings.searchEngine}
+            onEngineChange={(eng) => handleSettingsChange({ searchEngine: eng })}
+          />
+
+          <div className={`transition-all duration-700 w-full max-w-4xl flex justify-center mt-4 ${clutterLevel === 'none' ? 'opacity-0 pointer-events-none translate-y-4' : 'opacity-100 translate-y-0'}`}>
+            <Shortcuts clutterLevel={clutterLevel} />
           </div>
         </div>
 
@@ -102,21 +139,39 @@ function App() {
 
         {/* Bottom Center Area */}
         <div className="absolute bottom-8 left-1/2 transform -translate-x-1/2 z-10">
-          <UserSettings />
+          <UserSettings
+            settings={settings}
+            onSettingsChange={handleSettingsChange}
+          />
         </div>
 
         {/* Bottom Right Area */}
         <div className="absolute bottom-8 right-8 flex items-center z-10">
-          <ControlPanel 
-            currentMood={mood} 
-            engine={engineRef.current} 
+          <ControlPanel
+            currentMood={mood}
+            engine={engineRef.current}
           />
         </div>
 
-        {/* Hidden Audio Player */}
-        <SoundPlayer soundType={theme.soundType} mood={mood} />
+        {/* Audio Player */}
+        <SoundPlayer
+          soundType={theme.soundType}
+          mood={mood}
+          enabled={settings.soundEnabled !== false}
+        />
 
       </div>
+
+      {/* Panels (rendered outside normal flow, inside MoodBackground for z-index) */}
+      <BookmarksPanel
+        isOpen={bookmarksOpen}
+        onClose={() => setBookmarksOpen(false)}
+      />
+      <AppsGrid
+        isOpen={appsOpen}
+        onClose={() => setAppsOpen(false)}
+      />
+
     </MoodBackground>
   );
 }

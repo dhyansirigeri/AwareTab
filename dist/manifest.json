@@ -10,7 +10,8 @@
     "topSites",
     "tabs",
     "storage",
-    "geolocation"
+    "geolocation",
+    "bookmarks"
   ],
   "action": {
     "default_title": "AwareTab Settings"
