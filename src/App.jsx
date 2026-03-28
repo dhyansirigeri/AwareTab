@@ -1,5 +1,5 @@
 import React, { useEffect, useState, useRef } from 'react';
-import EmotionEngine from './EmotionEngine';
+
 import { MOODS, THEMES } from './MoodThemes';
 import MoodBackground from './components/MoodBackground';
 import Clock from './components/Clock';
@@ -18,7 +18,7 @@ import BreathingGuide from './components/BreathingGuide';
 import FocusTimer from './components/FocusTimer';
 import MoodIndicator from './components/MoodIndicator';
 
-import { storageGet, recordDomainVisit } from './utils/chromeApi';
+import { storageGet, localStorageGet, recordDomainVisit } from './utils/chromeApi';
 
 const DEFAULT_SETTINGS = {
   userName: '',
@@ -49,35 +49,34 @@ function App() {
     recordDomainVisit('https://newtab.local/');
   }, []);
 
-  // ─── Emotion Engine ─────────────────────────────────────────────────────────
+  // ─── Global Background Emotion Engine ───────────────────────────────────────
   useEffect(() => {
-    try {
-      if (typeof EmotionEngine !== 'undefined') {
-        const _engine = new EmotionEngine({
-          debug: true,
-          calibrationMs: 5000,
-          manualOverrideMs: 8000,
-        });
-        
-        setEngine(_engine);
+    // Initial fetch
+    localStorageGet('globalRawMood').then((res) => {
+      if (res.globalRawMood) setMood(res.globalRawMood);
+    });
 
-        const handleMoodChange = (event) => {
-          console.log('🎭 Mood change detected:', event.detail);
-          setMood(event.detail);
-        };
-
-        window.addEventListener('moodChanged', handleMoodChange);
-        _engine.start();
-        console.log('🚀 Emotion Engine started successfully');
-
-        return () => {
-          window.removeEventListener('moodChanged', handleMoodChange);
-          _engine.destroy();
-        };
+    // Listen to changes from any tab
+    const handleStorageChange = (changes, areaName) => {
+      if (areaName === 'local' && changes.globalRawMood) {
+        console.log('🎭 Global mood change detected:', changes.globalRawMood.newValue);
+        setMood(changes.globalRawMood.newValue);
       }
-    } catch (e) {
-      console.error('Error initializing EmotionEngine', e);
-    }
+    };
+
+    try {
+      if (typeof chrome !== 'undefined' && chrome.storage && chrome.storage.onChanged) {
+        chrome.storage.onChanged.addListener(handleStorageChange);
+      }
+    } catch (e) {}
+
+    return () => {
+      try {
+        if (typeof chrome !== 'undefined' && chrome.storage && chrome.storage.onChanged) {
+          chrome.storage.onChanged.removeListener(handleStorageChange);
+        }
+      } catch (e) {}
+    };
   }, []);
 
   const getAppTimeOfDay = () => {

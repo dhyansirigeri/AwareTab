@@ -6,12 +6,25 @@
   "chrome_url_overrides": {
     "newtab": "index.html"
   },
+  "host_permissions": [
+    "<all_urls>"
+  ],
   "permissions": [
     "topSites",
     "tabs",
     "storage",
     "geolocation",
     "bookmarks"
+  ],
+  "background": {
+    "service_worker": "background.js"
+  },
+  "content_scripts": [
+    {
+      "matches": ["<all_urls>"],
+      "js": ["content.js"],
+      "all_frames": true
+    }
   ],
   "action": {
     "default_title": "AwareTab Settings"
