@@ -15,7 +15,7 @@ export default function SoundPlayer({ soundType, mood, enabled = true }) {
 
   useEffect(() => {
     audioRef.current.loop = true;
-    audioRef.current.volume = 0.3;
+    audioRef.current.volume = 1.0;
     return () => { audioRef.current.pause(); };
   }, []);
 

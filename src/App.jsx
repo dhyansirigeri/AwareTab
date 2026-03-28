@@ -156,7 +156,7 @@ function App() {
         </div>
 
         {/* ── Top Right ── */}
-        <div className="absolute top-8 right-8 z-10 flex gap-4">
+        <div className="absolute top-8 right-8 z-50 flex gap-4">
           <TopRightIcons
             onBookmarksClick={() => setBookmarksOpen(true)}
             onAppsClick={() => setAppsOpen(true)}

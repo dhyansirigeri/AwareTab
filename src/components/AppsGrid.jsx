@@ -79,15 +79,13 @@ export default function GoogleAppsPanel({ isOpen, onClose }) {
                 >
                   <div className="app-icon-wrap">
                     <img
-                      src={`https://www.google.com/s2/favicons?domain=${new URL(app.url).hostname}&sz=64`}
+                      src={app.favicon}
                       alt={app.name}
                       className="app-favicon"
                       onError={(e) => {
-                        e.target.src = app.favicon;
-                        e.target.onerror = () => {
-                          e.target.style.display = 'none';
-                          e.target.nextSibling.style.display = 'flex';
-                        };
+                        e.target.onerror = null;
+                        e.target.style.display = 'none';
+                        e.target.nextSibling.style.display = 'flex';
                       }}
                     />
                     <span className="app-fallback" style={{ display: 'none' }}>
