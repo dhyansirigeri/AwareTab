@@ -4,15 +4,23 @@
  * All functions return Promises.
  */
 
-const IS_EXTENSION = typeof chrome !== 'undefined' && chrome.runtime && chrome.runtime.id;
+const IS_EXTENSION = () => {
+  try {
+    return typeof chrome !== 'undefined' && chrome.runtime && !!chrome.runtime.id;
+  } catch (e) {
+    return false;
+  }
+};
 
 // ─── Storage ────────────────────────────────────────────────────────────────
 
 const _mockStorage = {};
 
 export const storageGet = (keys) => {
-  if (IS_EXTENSION) {
-    return new Promise((resolve) => chrome.storage.sync.get(keys, resolve));
+  if (IS_EXTENSION()) {
+    return new Promise((resolve) => {
+      try { chrome.storage.sync.get(keys, resolve); } catch (e) { resolve({}); }
+    });
   }
   const result = {};
   const keyList = Array.isArray(keys) ? keys : (keys ? [keys] : null);
@@ -26,16 +34,20 @@ export const storageGet = (keys) => {
 };
 
 export const storageSet = (data) => {
-  if (IS_EXTENSION) {
-    return new Promise((resolve) => chrome.storage.sync.set(data, resolve));
+  if (IS_EXTENSION()) {
+    return new Promise((resolve) => {
+      try { chrome.storage.sync.set(data, resolve); } catch (e) { resolve(); }
+    });
   }
   Object.assign(_mockStorage, data);
   return Promise.resolve();
 };
 
 export const localStorageGet = (keys) => {
-  if (IS_EXTENSION) {
-    return new Promise((resolve) => chrome.storage.local.get(keys, resolve));
+  if (IS_EXTENSION()) {
+    return new Promise((resolve) => {
+      try { chrome.storage.local.get(keys, resolve); } catch (e) { resolve({}); }
+    });
   }
   try {
     const result = {};
@@ -59,8 +71,10 @@ export const localStorageGet = (keys) => {
 };
 
 export const localStorageSet = (data) => {
-  if (IS_EXTENSION) {
-    return new Promise((resolve) => chrome.storage.local.set(data, resolve));
+  if (IS_EXTENSION()) {
+    return new Promise((resolve) => {
+      try { chrome.storage.local.set(data, resolve); } catch (e) { resolve(); }
+    });
   }
   try {
     Object.entries(data).forEach(([k, v]) => localStorage.setItem(k, JSON.stringify(v)));
@@ -97,10 +111,14 @@ const flattenBookmarks = (nodes) => {
 };
 
 export const getBookmarks = () => {
-  if (IS_EXTENSION) {
-    return new Promise((resolve) =>
-      chrome.bookmarks.getTree((tree) => resolve(flattenBookmarks(tree)))
-    );
+  if (IS_EXTENSION()) {
+    return new Promise((resolve) => {
+      try {
+        chrome.bookmarks.getTree((tree) => resolve(flattenBookmarks(tree)));
+      } catch (e) {
+        resolve([]);
+      }
+    });
   }
   return Promise.resolve(MOCK_BOOKMARKS);
 };
@@ -119,8 +137,10 @@ const MOCK_TOP_SITES = [
 ];
 
 export const getTopSites = () => {
-  if (IS_EXTENSION) {
-    return new Promise((resolve) => chrome.topSites.get(resolve));
+  if (IS_EXTENSION()) {
+    return new Promise((resolve) => {
+      try { chrome.topSites.get(resolve); } catch (e) { resolve([]); }
+    });
   }
   return Promise.resolve(MOCK_TOP_SITES);
 };
@@ -130,7 +150,7 @@ export const getTopSites = () => {
 export const getFaviconUrl = (url) => {
   try {
     const origin = new URL(url).origin;
-    if (IS_EXTENSION) {
+    if (IS_EXTENSION()) {
       // Chrome 119+ supports chrome-extension favicon URL
       return `https://www.google.com/s2/favicons?domain=${origin}&sz=64`;
     }
@@ -178,8 +198,12 @@ export const getTodayStats = async () => {
 // ─── Open URL ────────────────────────────────────────────────────────────────
 
 export const openUrl = (url, newTab = false) => {
-  if (IS_EXTENSION && newTab) {
-    chrome.tabs.create({ url });
+  if (IS_EXTENSION() && newTab) {
+    try {
+      chrome.tabs.create({ url });
+    } catch (e) {
+      window.location.href = url;
+    }
   } else {
     window.location.href = url;
   }

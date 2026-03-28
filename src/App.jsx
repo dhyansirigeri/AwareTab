@@ -88,7 +88,15 @@ function App() {
     return 'night';
   };
 
-  const theme = THEMES[mood] || THEMES[MOODS.RELAXED];
+  const isMoodLocked = () => {
+    if (!settings.manualMood || settings.manualMood === 'AUTO') return false;
+    if (settings.manualMoodUntil === 'forever') return true;
+    if (settings.manualMoodUntil && Date.now() < settings.manualMoodUntil) return true;
+    return false;
+  };
+
+  const effectiveMood = isMoodLocked() ? settings.manualMood : mood;
+  const theme = THEMES[effectiveMood] || THEMES[MOODS.RELAXED];
   const timeOfDay = getAppTimeOfDay();
 
   // Clutter level: user setting overrides mood theme
@@ -106,13 +114,13 @@ function App() {
       colors={theme.colors}
       timeOfDay={timeOfDay}
       weatherCondition={weatherCondition}
-      mood={mood}
+      mood={effectiveMood}
     >
       <div className="relative w-full h-full flex flex-col transition-colors duration-1000 text-theme-text" style={{ padding: '2rem' }}>
         
         {/* ── Top indicator ── */}
         <div className="absolute top-8 left-1/2 transform -translate-x-1/2 z-20">
-           <MoodIndicator mood={mood} />
+           <MoodIndicator mood={effectiveMood} />
         </div>
 
         {/* ── Left Column: Greeting → Weather → Usage Stats ── */}
@@ -199,7 +207,7 @@ function App() {
         {/* ── Bottom Right ── */}
         <div className="absolute bottom-8 right-8 flex items-center z-10">
           <ControlPanel
-            currentMood={mood}
+            currentMood={effectiveMood}
             engine={engine}
           />
         </div>
@@ -208,7 +216,7 @@ function App() {
         {showComponent('music') && (
           <SoundPlayer
             soundType={theme.soundType}
-            mood={mood}
+            mood={effectiveMood}
             enabled={settings.soundEnabled !== false}
           />
         )}

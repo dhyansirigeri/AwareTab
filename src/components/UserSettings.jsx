@@ -1,12 +1,18 @@
 import React, { useState, useEffect } from 'react';
-import { Settings, X, User, Search, Clock, Volume2, VolumeX, Layers } from 'lucide-react';
+import { Settings, X, User, Search, Clock, Volume2, VolumeX, Layers, Lock } from 'lucide-react';
 import { storageGet, storageSet } from '../utils/chromeApi';
 import { motion, AnimatePresence } from 'framer-motion';
 import styled from 'styled-components';
+import { createPortal } from 'react-dom';
 
 const ENGINES   = ['google', 'bing', 'ddg'];
 const ENGINE_LABELS = { google: 'Google', bing: 'Bing', ddg: 'DuckDuckGo' };
 const CLUTTER_LEVELS = ['none', 'minimal', 'full'];
+
+const MOOD_OPTIONS = ['AUTO', 'RELAXED', 'FOCUSED', 'STRESSED', 'TIRED'];
+const MOOD_LABELS = { 'AUTO': 'Auto', 'RELAXED': 'Relaxed', 'FOCUSED': 'Focused', 'STRESSED': 'Stressed', 'TIRED': 'Tired' };
+const DURATION_OPTIONS = ['1h', '6h', 'EOD', 'forever'];
+const DURATION_LABELS = { '1h': '1 Hour', '6h': '6 Hours', 'EOD': 'End of Day', 'forever': 'Until Changed' };
 
 export default function UserSettings({ settings, onSettingsChange }) {
   const [isOpen, setIsOpen] = useState(false);
@@ -15,11 +21,57 @@ export default function UserSettings({ settings, onSettingsChange }) {
   // Sync from parent
   useEffect(() => { setLocal(settings || {}); }, [settings]);
 
+  const updateMultiple = async (updates) => {
+    const newLocal = { ...local, ...updates };
+    setLocal(newLocal);
+    await storageSet(newLocal);
+    onSettingsChange?.(newLocal);
+  };
+
   const update = async (key, value) => {
-    const updated = { ...local, [key]: value };
-    setLocal(updated);
-    await storageSet(updated);
-    onSettingsChange?.(updated);
+    updateMultiple({ [key]: value });
+  };
+
+  const handleMoodLockChange = (moodOption) => {
+    const updates = { manualMood: moodOption };
+    let duration = local.manualDuration || '1h';
+    if (moodOption !== 'AUTO' && !local.manualDuration) {
+      updates.manualDuration = '1h';
+      duration = '1h';
+    }
+
+    let until = null;
+    if (moodOption !== 'AUTO') {
+      if (duration === '1h') until = Date.now() + 60 * 60 * 1000;
+      else if (duration === '6h') until = Date.now() + 6 * 60 * 60 * 1000;
+      else if (duration === 'EOD') {
+        const d = new Date();
+        d.setHours(23, 59, 59, 999);
+        until = d.getTime();
+      } else {
+        until = 'forever';
+      }
+    }
+    updates.manualMoodUntil = until;
+    updateMultiple(updates);
+  };
+
+  const handleDurationChange = (duration) => {
+    const updates = { manualDuration: duration };
+    let until = null;
+    if (local.manualMood && local.manualMood !== 'AUTO') {
+      if (duration === '1h') until = Date.now() + 60 * 60 * 1000;
+      else if (duration === '6h') until = Date.now() + 6 * 60 * 60 * 1000;
+      else if (duration === 'EOD') {
+        const d = new Date();
+        d.setHours(23, 59, 59, 999);
+        until = d.getTime();
+      } else {
+        until = 'forever';
+      }
+    }
+    updates.manualMoodUntil = until;
+    updateMultiple(updates);
   };
 
   return (
@@ -55,9 +107,10 @@ export default function UserSettings({ settings, onSettingsChange }) {
         User settings
       </button>
 
-      <AnimatePresence>
-        {isOpen && (
-          <>
+      {createPortal(
+        <AnimatePresence>
+          {isOpen && (
+            <>
             <motion.div
               key="us-backdrop"
               initial={{ opacity: 0 }}
@@ -141,6 +194,27 @@ export default function UserSettings({ settings, onSettingsChange }) {
                     />
                   </Section>
 
+                  {/* Mood Lock */}
+                  <Section icon={<Lock size={15} />} label="Mood Lock">
+                    <SegmentRow
+                      options={MOOD_OPTIONS}
+                      labels={MOOD_LABELS}
+                      value={local.manualMood || 'AUTO'}
+                      onChange={handleMoodLockChange}
+                    />
+                    {local.manualMood && local.manualMood !== 'AUTO' && (
+                      <div style={{ marginTop: '0.75rem' }}>
+                        <div className="setting-label" style={{ fontSize: '0.7rem', opacity: 0.7 }}>Lock Duration</div>
+                        <SegmentRow
+                          options={DURATION_OPTIONS}
+                          labels={DURATION_LABELS}
+                          value={local.manualDuration || '1h'}
+                          onChange={handleDurationChange}
+                        />
+                      </div>
+                    )}
+                  </Section>
+
                 </div>
 
                 <div className="panel-footer">
@@ -150,7 +224,9 @@ export default function UserSettings({ settings, onSettingsChange }) {
             </motion.div>
           </>
         )}
-      </AnimatePresence>
+      </AnimatePresence>,
+      document.body
+    )}
     </>
   );
 }
