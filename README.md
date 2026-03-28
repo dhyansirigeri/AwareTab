@@ -52,7 +52,7 @@ This will generate a `dist` folder containing the compiled assets and the `manif
 1. Open Chrome and navigate to `chrome://extensions/`.
 2. Enable **Developer mode** using the toggle in the top right corner.
 3. Click the **Load unpacked** button in the top left.
-4. Select the `dist` folder generated inside the `AwareTab` directory. *(Note: The `dist` folder is ignored by git, so you must run the build command above before you can load it into Chrome).*
+4. Select the `dist` folder generated inside the `AwareTab` directory.
 5. Open a new tab, and you should now see AwareTab!
 
 ## 💻 Development Workflow
