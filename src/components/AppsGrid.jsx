@@ -1,178 +1,165 @@
-import React, { useState, useEffect } from 'react';
-import { X, LayoutGrid } from 'lucide-react';
-import { getTopSites, getFaviconUrl, openUrl } from '../utils/chromeApi';
+import React, { useState, useEffect, useRef } from 'react';
+import { X } from 'lucide-react';
+import { openUrl } from '../utils/chromeApi';
 import { motion, AnimatePresence } from 'framer-motion';
 import styled from 'styled-components';
 
-export default function AppsGrid({ isOpen, onClose }) {
-  const [sites, setSites]   = useState([]);
-  const [loading, setLoading] = useState(true);
+// ─── Hardcoded Google apps with real favicons ─────────────────────────────────
+const GOOGLE_APPS = [
+  { name: 'Search',    url: 'https://www.google.com',           favicon: 'https://www.google.com/favicon.ico' },
+  { name: 'Gmail',     url: 'https://mail.google.com',          favicon: 'https://ssl.gstatic.com/ui/v1/icons/mail/rfr/gmail.ico' },
+  { name: 'Drive',     url: 'https://drive.google.com',         favicon: 'https://ssl.gstatic.com/images/branding/product/1x/drive_2020q4_48dp.png' },
+  { name: 'YouTube',   url: 'https://www.youtube.com',          favicon: 'https://www.youtube.com/favicon.ico' },
+  { name: 'Maps',      url: 'https://maps.google.com',          favicon: 'https://maps.gstatic.com/mapfiles/maps_lite/favicon_hdpi.ico' },
+  { name: 'Meet',      url: 'https://meet.google.com',          favicon: 'https://fonts.gstatic.com/s/i/productlogos/meet_2020q4/v6/web-512dp/logo_meet_2020q4_color_2x_web_512dp.png' },
+  { name: 'Calendar',  url: 'https://calendar.google.com',      favicon: 'https://calendar.google.com/googlecalendar/images/favicon_v2014_2.ico' },
+  { name: 'Translate', url: 'https://translate.google.com',     favicon: 'https://ssl.gstatic.com/translate/favicon.ico' },
+  { name: 'Photos',    url: 'https://photos.google.com',        favicon: 'https://www.gstatic.com/images/icons/material/product/1x/photos_48dp.png' },
+  { name: 'Docs',      url: 'https://docs.google.com',          favicon: 'https://ssl.gstatic.com/docs/documents/images/kix-favicon7.ico' },
+  { name: 'Sheets',    url: 'https://sheets.google.com',        favicon: 'https://ssl.gstatic.com/docs/spreadsheets/favicon3.ico' },
+  { name: 'News',      url: 'https://news.google.com',          favicon: 'https://lh3.googleusercontent.com/DR43tDQH6_ORjxcMCgMx5-UjMwBr3pN8iCHPFGMD5BSEzfLd6-hT7i2E5nJkb0LW=s180' },
+  { name: 'Chat',      url: 'https://chat.google.com',          favicon: 'https://www.gstatic.com/images/icons/material/product/2x/chat_48dp.png' },
+  { name: 'Gemini',    url: 'https://gemini.google.com',        favicon: 'https://www.gstatic.com/lamda/images/gemini_sparkle_v002_d4735304ff6292a690345.svg' },
+  { name: 'Play',      url: 'https://play.google.com',          favicon: 'https://www.gstatic.com/android/market_images/web/favicon_v2.ico' },
+  { name: 'Slides',    url: 'https://slides.google.com',        favicon: 'https://ssl.gstatic.com/docs/presentations/images/favicon5.ico' },
+  { name: 'Keep',      url: 'https://keep.google.com',          favicon: 'https://ssl.gstatic.com/keep/favicon_2020q4v2.ico' },
+  { name: 'Forms',     url: 'https://forms.google.com',         favicon: 'https://ssl.gstatic.com/docs/forms/device_home/android_192.png' },
+];
 
+export default function GoogleAppsPanel({ isOpen, onClose }) {
+  const panelRef = useRef(null);
+
+  // Close on outside click
   useEffect(() => {
-    if (isOpen) {
-      setLoading(true);
-      getTopSites().then((s) => {
-        setSites(s.slice(0, 12));
-        setLoading(false);
-      });
-    }
-  }, [isOpen]);
+    const handler = (e) => {
+      if (panelRef.current && !panelRef.current.contains(e.target)) onClose();
+    };
+    if (isOpen) document.addEventListener('mousedown', handler);
+    return () => document.removeEventListener('mousedown', handler);
+  }, [isOpen, onClose]);
 
   const handleClick = (url) => {
     openUrl(url, false);
     onClose();
   };
 
-  const getDomain = (url) => {
-    try {
-      return new URL(url).hostname.replace('www.', '');
-    } catch {
-      return url;
-    }
-  };
-
-  const getShortName = (title, url) => {
-    if (title && title.length > 0) return title;
-    return getDomain(url);
-  };
-
   return (
     <AnimatePresence>
       {isOpen && (
-        <>
-          <motion.div
-            key="apps-backdrop"
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            exit={{ opacity: 0 }}
-            style={{
-              position: 'fixed', inset: 0, zIndex: 40,
-              background: 'rgba(0,0,0,0.5)',
-              backdropFilter: 'blur(6px)',
-            }}
-            onClick={onClose}
-          />
+        <motion.div
+          ref={panelRef}
+          key="google-apps-panel"
+          initial={{ opacity: 0, scale: 0.9, y: -12 }}
+          animate={{ opacity: 1, scale: 1, y: 0 }}
+          exit={{ opacity: 0, scale: 0.9, y: -12 }}
+          transition={{ type: 'spring', damping: 26, stiffness: 280 }}
+          style={{
+            position: 'fixed',
+            top: '4.5rem',
+            right: '2rem',
+            zIndex: 60,
+            transformOrigin: 'top right',
+          }}
+        >
+          <Panel>
+            <div className="panel-header">
+              <span className="panel-title">Google Apps</span>
+              <button className="close-btn" onClick={onClose}>
+                <X size={16} />
+              </button>
+            </div>
 
-          <motion.div
-            key="apps-modal"
-            initial={{ opacity: 0, scale: 0.92, y: -20 }}
-            animate={{ opacity: 1, scale: 1, y: 0 }}
-            exit={{ opacity: 0, scale: 0.92, y: -20 }}
-            transition={{ type: 'spring', damping: 24, stiffness: 240 }}
-            style={{
-              position: 'fixed', top: '50%', left: '50%',
-              transform: 'translate(-50%, -50%)',
-              zIndex: 50,
-            }}
-          >
-            <Modal>
-              <div className="modal-header">
-                <div className="header-title">
-                  <LayoutGrid size={17} />
-                  <span>Most Visited</span>
-                </div>
-                <button className="close-btn" onClick={onClose}>
-                  <X size={18} />
+            <div className="apps-grid">
+              {GOOGLE_APPS.map((app) => (
+                <button
+                  key={app.name}
+                  className="app-tile"
+                  onClick={() => handleClick(app.url)}
+                  title={app.url}
+                >
+                  <div className="app-icon-wrap">
+                    <img
+                      src={`https://www.google.com/s2/favicons?domain=${new URL(app.url).hostname}&sz=64`}
+                      alt={app.name}
+                      className="app-favicon"
+                      onError={(e) => {
+                        e.target.src = app.favicon;
+                        e.target.onerror = () => {
+                          e.target.style.display = 'none';
+                          e.target.nextSibling.style.display = 'flex';
+                        };
+                      }}
+                    />
+                    <span className="app-fallback" style={{ display: 'none' }}>
+                      {app.name[0]}
+                    </span>
+                  </div>
+                  <span className="app-name">{app.name}</span>
                 </button>
-              </div>
-
-              <div className="apps-grid">
-                {loading
-                  ? Array.from({ length: 8 }).map((_, i) => (
-                    <div key={i} className="app-skeleton" />
-                  ))
-                  : sites.map((site, i) => (
-                    <button
-                      key={i}
-                      className="app-tile"
-                      onClick={() => handleClick(site.url)}
-                      title={site.url}
-                    >
-                      <div className="app-icon-wrap">
-                        <img
-                          src={getFaviconUrl(site.url)}
-                          alt=""
-                          className="app-favicon"
-                          onError={(e) => {
-                            e.target.style.display = 'none';
-                            e.target.nextSibling.style.display = 'flex';
-                          }}
-                        />
-                        <span className="app-fallback" style={{ display: 'none' }}>
-                          {(getShortName(site.title, site.url)?.[0] || '?').toUpperCase()}
-                        </span>
-                      </div>
-                      <span className="app-name">
-                        {getShortName(site.title, site.url).split(' ')[0]}
-                      </span>
-                    </button>
-                  ))
-                }
-              </div>
-            </Modal>
-          </motion.div>
-        </>
+              ))}
+            </div>
+          </Panel>
+        </motion.div>
       )}
     </AnimatePresence>
   );
 }
 
-const Modal = styled.div`
-  background: rgba(10, 10, 18, 0.85);
-  backdrop-filter: blur(40px) saturate(200%);
-  -webkit-backdrop-filter: blur(40px) saturate(200%);
-  border: 1px solid rgba(255,255,255,0.12);
-  border-radius: 20px;
-  padding: 1.25rem;
-  width: 380px;
-  box-shadow: 0 24px 60px rgba(0,0,0,0.5);
+const Panel = styled.div`
+  width: 260px;
+  background: rgba(12, 12, 18, 0.92);
+  backdrop-filter: blur(40px) saturate(180%);
+  -webkit-backdrop-filter: blur(40px) saturate(180%);
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  border-radius: 18px;
+  padding: 0.875rem;
+  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.6), 0 0 0 1px rgba(255,255,255,0.04);
   color: #fff;
 
-  .modal-header {
+  .panel-header {
     display: flex;
     align-items: center;
     justify-content: space-between;
-    margin-bottom: 1.25rem;
+    padding: 0 0.25rem 0.75rem;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.07);
+    margin-bottom: 0.75rem;
   }
 
-  .header-title {
-    display: flex;
-    align-items: center;
-    gap: 0.5rem;
-    font-size: 0.95rem;
+  .panel-title {
+    font-size: 0.82rem;
     font-weight: 600;
-    opacity: 0.85;
+    color: rgba(255, 255, 255, 0.55);
+    text-transform: uppercase;
+    letter-spacing: 0.07em;
   }
 
   .close-btn {
-    background: rgba(255,255,255,0.08);
+    background: rgba(255, 255, 255, 0.07);
     border: none;
-    border-radius: 7px;
-    padding: 0.3rem;
-    color: rgba(255,255,255,0.6);
+    border-radius: 6px;
+    padding: 0.25rem;
+    color: rgba(255, 255, 255, 0.5);
     cursor: pointer;
     display: flex;
     align-items: center;
-    transition: background 0.2s;
-    &:hover { background: rgba(255,255,255,0.15); color: #fff; }
+    transition: background 0.2s, color 0.2s;
+
+    &:hover {
+      background: rgba(255, 255, 255, 0.14);
+      color: #fff;
+    }
   }
 
   .apps-grid {
     display: grid;
-    grid-template-columns: repeat(4, 1fr);
-    gap: 0.75rem;
-  }
+    grid-template-columns: repeat(3, 1fr);
+    gap: 0.25rem;
+    max-height: 420px;
+    overflow-y: auto;
 
-  .app-skeleton {
-    height: 80px;
-    background: rgba(255,255,255,0.07);
-    border-radius: 14px;
-    animation: pulse 1.5s ease-in-out infinite;
-  }
-
-  @keyframes pulse {
-    0%, 100% { opacity: 0.5; }
-    50% { opacity: 1; }
+    &::-webkit-scrollbar { width: 4px; }
+    &::-webkit-scrollbar-track { background: transparent; }
+    &::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.12); border-radius: 999px; }
   }
 
   .app-tile {
@@ -180,36 +167,40 @@ const Modal = styled.div`
     flex-direction: column;
     align-items: center;
     gap: 0.4rem;
-    background: rgba(255,255,255,0.05);
-    border: 1px solid rgba(255,255,255,0.08);
+    background: transparent;
+    border: 1px solid transparent;
     border-radius: 14px;
-    padding: 0.85rem 0.5rem;
+    padding: 0.75rem 0.4rem;
     cursor: pointer;
-    transition: background 0.2s, transform 0.15s, border-color 0.2s;
+    transition: background 0.18s, border-color 0.18s, transform 0.15s;
     color: inherit;
 
     &:hover {
-      background: rgba(255,255,255,0.12);
-      border-color: rgba(255,255,255,0.2);
-      transform: translateY(-2px);
+      background: rgba(255, 255, 255, 0.08);
+      border-color: rgba(255, 255, 255, 0.1);
+      transform: translateY(-1px);
     }
-    &:active { transform: translateY(0) scale(0.96); }
+
+    &:active {
+      transform: scale(0.94);
+    }
   }
 
   .app-icon-wrap {
-    width: 40px;
-    height: 40px;
-    background: rgba(255,255,255,0.1);
-    border-radius: 10px;
+    width: 44px;
+    height: 44px;
+    border-radius: 12px;
+    background: rgba(255, 255, 255, 0.06);
     display: flex;
     align-items: center;
     justify-content: center;
     overflow: hidden;
+    flex-shrink: 0;
   }
 
   .app-favicon {
-    width: 28px;
-    height: 28px;
+    width: 30px;
+    height: 30px;
     object-fit: contain;
   }
 
@@ -221,17 +212,17 @@ const Modal = styled.div`
     justify-content: center;
     font-size: 1.1rem;
     font-weight: 700;
-    color: rgba(255,255,255,0.7);
+    color: rgba(255, 255, 255, 0.65);
   }
 
   .app-name {
     font-size: 0.7rem;
     font-weight: 500;
-    color: rgba(255,255,255,0.7);
+    color: rgba(255, 255, 255, 0.65);
     text-align: center;
     white-space: nowrap;
     overflow: hidden;
     text-overflow: ellipsis;
-    max-width: 72px;
+    max-width: 68px;
   }
 `;

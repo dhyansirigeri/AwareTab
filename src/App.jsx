@@ -13,7 +13,7 @@ import UsageStats from './components/UsageStats';
 import TopRightIcons from './components/TopRightIcons';
 import UserSettings from './components/UserSettings';
 import BookmarksPanel from './components/BookmarksPanel';
-import AppsGrid from './components/AppsGrid';
+import GoogleAppsPanel from './components/AppsGrid';
 
 import { storageGet, recordDomainVisit } from './utils/chromeApi';
 
@@ -167,7 +167,7 @@ function App() {
         isOpen={bookmarksOpen}
         onClose={() => setBookmarksOpen(false)}
       />
-      <AppsGrid
+      <GoogleAppsPanel
         isOpen={appsOpen}
         onClose={() => setAppsOpen(false)}
       />
