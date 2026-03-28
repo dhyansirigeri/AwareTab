@@ -165,7 +165,7 @@ function App() {
         </div>
 
         {/* ── Center: Clock + Search + Shortcuts + Breathing/Focus ── */}
-        <div className="flex flex-col flex-1 items-center justify-center z-10" style={{ marginTop: '-2rem' }}>
+        <div className="flex flex-col flex-1 items-center justify-center z-10" style={{ marginTop: '-4rem' }}>
           
           <div style={{ marginBottom: showComponent('breathingGuide') || showComponent('focusTimer') ? '1.5rem' : '2.5rem' }}>
             {showComponent('clock') && <Clock clockFormat={settings.clockFormat} />}
@@ -185,7 +185,7 @@ function App() {
           )}
 
           {showComponent('focusTimer') && (
-             <div className="mt-8 transition-opacity duration-700 opacity-100">
+             <div className="mt-5 transition-opacity duration-700 opacity-100">
                <FocusTimer />
              </div>
           )}

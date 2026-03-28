@@ -55,101 +55,97 @@ export default function FocusTimer() {
   return (
     <div style={{
       display: 'flex',
-      flexDirection: 'column',
+      flexDirection: 'row',
       alignItems: 'center',
-      gap: '0.85rem',
-      padding: '1.25rem',
-      background: 'rgba(0,0,0,0.4)',
-      backdropFilter: 'blur(20px)',
-      WebkitBackdropFilter: 'blur(20px)',
-      borderRadius: '20px',
-      border: `1px solid ${accent}33`,
-      boxShadow: '0 8px 32px rgba(0,0,0,0.4)',
-      width: '200px',
+      gap: '1.5rem',
+      padding: '0.75rem 1.25rem',
+      background: 'rgba(10, 10, 10, 0.4)',
+      backdropFilter: 'blur(30px)',
+      WebkitBackdropFilter: 'blur(30px)',
+      borderRadius: '999px',
+      border: `1px solid ${accent}44`,
+      boxShadow: '0 8px 32px rgba(0,0,0,0.3)',
+      color: '#fff',
     }}>
-      {/* Header */}
-      <div style={{ display: 'flex', gap: '0.5rem', alignItems: 'center' }}>
+      {/* Header / Mode Indicator */}
+      <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', minWidth: '85px' }}>
         <AnimatePresence mode="wait">
           <motion.span
             key={mode}
-            initial={{ opacity: 0, x: -8 }}
-            animate={{ opacity: 1, x: 0 }}
-            exit={{ opacity: 0, x: 8 }}
+            initial={{ opacity: 0, y: -5 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: 5 }}
             style={{
-              fontSize: '0.7rem',
+              fontSize: '0.75rem',
               textTransform: 'uppercase',
-              letterSpacing: '0.12em',
+              letterSpacing: '0.1em',
               color: accent,
               fontWeight: 700,
             }}
           >
-            {mode === 'work' ? '🎯 Focus' : '☕ Break'}
+            {mode === 'work' ? '🎯 FOCUS' : '☕ BREAK'}
           </motion.span>
         </AnimatePresence>
-        {sessions > 0 && (
-          <span style={{ fontSize: '0.65rem', color: 'rgba(255,255,255,0.4)', background: 'rgba(255,255,255,0.08)', borderRadius: '999px', padding: '1px 7px' }}>
-            ×{sessions}
-          </span>
-        )}
       </div>
 
-      {/* Ring */}
-      <div style={{ position: 'relative', width: 110, height: 110 }}>
-        <svg width="110" height="110" style={{ transform: 'rotate(-90deg)' }}>
-          <circle cx="55" cy="55" r="44" fill="none" stroke="rgba(255,255,255,0.08)" strokeWidth="6" />
-          <motion.circle
-            cx="55" cy="55" r="44"
-            fill="none"
-            stroke={accent}
-            strokeWidth="6"
-            strokeLinecap="round"
-            strokeDasharray={circumference}
-            animate={{ strokeDashoffset: circumference * (1 - progress) }}
-            transition={{ duration: 0.8, ease: 'easeOut' }}
-          />
-        </svg>
-        <div style={{
-          position: 'absolute', inset: 0,
-          display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center',
-        }}>
-          <span style={{ fontSize: '1.5rem', fontWeight: 700, color: '#fff', letterSpacing: '-0.02em', fontVariantNumeric: 'tabular-nums' }}>
-            {formatTime(seconds)}
-          </span>
-        </div>
+      {/* Timer Text */}
+      <div style={{ 
+        fontSize: '1.75rem', 
+        fontWeight: 600, 
+        letterSpacing: '-0.02em', 
+        fontVariantNumeric: 'tabular-nums',
+        minWidth: '80px',
+        textAlign: 'center'
+      }}>
+        {formatTime(seconds)}
       </div>
 
-      {/* Controls */}
-      <div style={{ display: 'flex', gap: '0.6rem', alignItems: 'center' }}>
+      {/* Controls & Sessions combined */}
+      <div style={{ display: 'flex', gap: '0.5rem', alignItems: 'center' }}>
         <button
           onClick={() => setRunning(r => !r)}
           style={{
-            width: 40, height: 40,
+            width: 36, height: 36,
             borderRadius: '50%',
-            border: `1.5px solid ${accent}66`,
-            background: `${accent}22`,
-            color: accent,
+            background: running ? `${accent}22` : `rgba(255,255,255,0.1)`,
+            color: running ? accent : '#fff',
             cursor: 'pointer',
             display: 'flex', alignItems: 'center', justifyContent: 'center',
-            transition: 'all 0.2s',
+            transition: 'all 0.2s ease',
+            border: 'none',
           }}
+          title={running ? "Pause" : "Start"}
         >
-          {running ? <Pause size={16} /> : <Play size={16} />}
+          {running ? <Pause size={16} fill="currentColor" /> : <Play size={16} fill="currentColor" style={{ marginLeft: '2px' }} />}
         </button>
+
         <button
           onClick={reset}
           style={{
-            width: 32, height: 32,
+            width: 36, height: 36,
             borderRadius: '50%',
-            border: '1px solid rgba(255,255,255,0.15)',
-            background: 'rgba(255,255,255,0.06)',
+            background: 'transparent',
             color: 'rgba(255,255,255,0.5)',
             cursor: 'pointer',
             display: 'flex', alignItems: 'center', justifyContent: 'center',
             transition: 'all 0.2s',
+            border: 'none',
           }}
+          title="Reset Timer"
+          onMouseEnter={(e) => { e.currentTarget.style.color = '#fff'; e.currentTarget.style.background = 'rgba(255,255,255,0.1)'; }}
+          onMouseLeave={(e) => { e.currentTarget.style.color = 'rgba(255,255,255,0.5)'; e.currentTarget.style.background = 'transparent'; }}
         >
-          <RotateCcw size={13} />
+          <RotateCcw size={14} />
         </button>
+
+        {sessions > 0 && (
+          <div style={{ marginLeft: '0.5rem', paddingLeft: '0.75rem', borderLeft: '1px solid rgba(255,255,255,0.1)'}}>
+            <span style={{ fontSize: '0.75rem', color: 'rgba(255,255,255,0.6)', fontWeight: 600 }}>
+              {sessions}
+            </span>
+            <span style={{ fontSize: '0.65rem', color: 'rgba(255,255,255,0.4)', marginLeft: '2px' }}>SETS</span>
+          </div>
+        )}
       </div>
     </div>
   );
