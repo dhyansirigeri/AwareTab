@@ -580,20 +580,21 @@ export class EmotionEngine {
     const baseScroll = this._baseline.scrollPxPerS ?? 250;
 
     // Normalizations (0..1). We clamp to prevent any single signal from exploding.
-    const mouseHigh = clamp01(mouseSpeedPxPerS / (baseMouse * 2.2));
-    const mouseLow = clamp01(1 - mouseSpeedPxPerS / (baseMouse * 1.2));
+    // Made thresholds more sensitive for faster mood detection
+    const mouseHigh = clamp01(mouseSpeedPxPerS / (baseMouse * 1.5));  // More sensitive
+    const mouseLow = clamp01(1 - mouseSpeedPxPerS / (baseMouse * 0.8));  // More sensitive
 
-    const typingHigh = clamp01(typingKeysPerS / (baseTyping * 2.5));
-    const typingLow = clamp01(1 - typingKeysPerS / (baseTyping * 1.3));
+    const typingHigh = clamp01(typingKeysPerS / (baseTyping * 1.8));  // More sensitive
+    const typingLow = clamp01(1 - typingKeysPerS / (baseTyping * 0.9));  // More sensitive
 
-    const tabsHigh = clamp01(tabSwitchesPerS / 0.25); // ~1 switch / 4s feels "high"
-    const tabsLow = clamp01(1 - tabSwitchesPerS / 0.08);
+    const tabsHigh = clamp01(tabSwitchesPerS / 0.4);  // More sensitive
+    const tabsLow = clamp01(1 - tabSwitchesPerS / 0.12);  // More sensitive
 
-    const scrollHigh = clamp01(scrollPxPerS / (baseScroll * 2.2));
-    const scrollLow = clamp01(1 - scrollPxPerS / (baseScroll * 1.2));
+    const scrollHigh = clamp01(scrollPxPerS / (baseScroll * 1.5));  // More sensitive
+    const scrollLow = clamp01(1 - scrollPxPerS / (baseScroll * 0.8));  // More sensitive
 
-    const idleHigh = clamp01(idleMs / 15000); // 15s+ = strongly idle
-    const idleLow = clamp01(1 - idleMs / 5000); // <5s = active
+    const idleHigh = clamp01(idleMs / 12000);  // More sensitive (12s vs 15s)
+    const idleLow = clamp01(1 - idleMs / 4000);  // More sensitive (4s vs 5s)
 
     // Interaction frequency (used as a stabilizer)
     const interactionsPerS = (mouseHigh + typingHigh + scrollHigh) / 3;
@@ -721,15 +722,15 @@ export class EmotionEngine {
   }
 
   _pickMood(scores) {
-    // Keep it stable: require a small margin to change moods.
+    // Make it more responsive: smaller margin to change moods.
     const current = this._mood || MOODS.RELAXED;
     const entries = Object.entries(scores);
     entries.sort((a, b) => b[1] - a[1]);
     const [bestMood, bestScore] = entries[0] ?? [MOODS.RELAXED, 0];
     const currentScore = scores[current] ?? 0;
 
-    // If insufficient separation, stick to current mood.
-    if (bestMood !== current && bestScore < currentScore + 6) {
+    // Reduced threshold from 6 to 2 for faster mood switching
+    if (bestMood !== current && bestScore < currentScore + 2) {
       return current;
     }
 
@@ -748,13 +749,29 @@ export class EmotionEngine {
       console.log("[EmotionEngine] moodChanged:", prev, "→", mood, meta);
     }
 
-    this._emitter.emit("moodChanged", {
+    const eventPayload = {
       from: prev,
       to: mood,
       at: Date.now(),
       meta,
       scores: this._lastScores ? { ...this._lastScores } : null,
-    });
+    };
+
+    // Emit to internal subscribers
+    this._emitter.emit("moodChanged", eventPayload);
+
+    // Also emit as DOM event for React components
+    try {
+      const domEvent = new CustomEvent('moodChanged', { detail: mood });
+      window.dispatchEvent(domEvent);
+    } catch (e) {
+      // Fallback for environments where CustomEvent might not work
+      try {
+        window.moodChanged = mood;
+      } catch (fallbackError) {
+        // Ignore if both methods fail
+      }
+    }
   }
 }
 

@@ -22,14 +22,21 @@ function App() {
   useEffect(() => {
     try {
       if (typeof EmotionEngine !== 'undefined') {
-        engineRef.current = new EmotionEngine();
-        
+        // Initialize with debug mode enabled and faster calibration
+        engineRef.current = new EmotionEngine({
+          debug: true,
+          calibrationMs: 5000,  // 5 seconds instead of 12
+          manualOverrideMs: 8000   // 8 seconds for manual overrides
+        });
+
         const handleMoodChange = (event) => {
+          console.log('🎭 Mood change detected:', event.detail);
           setMood(event.detail);
         };
 
         window.addEventListener('moodChanged', handleMoodChange);
         engineRef.current.start();
+        console.log('🚀 Emotion Engine started successfully');
 
         return () => {
           window.removeEventListener('moodChanged', handleMoodChange);

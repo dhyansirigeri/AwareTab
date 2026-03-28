@@ -3,6 +3,7 @@ import react from '@vitejs/plugin-react';
 
 export default defineConfig({
   plugins: [react()],
+  base: './', // Use relative paths for Chrome extension compatibility
   build: {
     outDir: 'dist',
     rollupOptions: {
