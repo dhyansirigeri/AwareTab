@@ -34,7 +34,7 @@ To run this extension locally or load it into your browser:
 ### 1. Clone & Install Dependencies
 ```bash
 # Clone the repository (if you haven't already)
-git clone <repository-url>
+git clone https://github.com/dhyansirigeri/AwareTab.git
 cd AwareTab
 
 # Install dependencies
