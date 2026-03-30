@@ -39,6 +39,9 @@ cd AwareTab
 
 # Install dependencies
 npm install
+
+#Install Styles
+npm i styled-components
 ```
 
 ### 2. Build for Production
